@@ -1,10 +1,10 @@
-package com.example.story_app;
+package com.example.story;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class StoryAppApplicationTests {
+class StoryApplicationTests {
 
 	@Test
 	void contextLoads() {
