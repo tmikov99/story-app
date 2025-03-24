@@ -1,4 +1,4 @@
-package com.example.story;
+package com.coursework.story;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
