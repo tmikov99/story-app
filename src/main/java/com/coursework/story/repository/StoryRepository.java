@@ -1,4 +1,4 @@
-package com.coursework.story.repositories;
+package com.coursework.story.repository;
 
 import com.coursework.story.model.Story;
 import org.springframework.data.jpa.repository.JpaRepository;
