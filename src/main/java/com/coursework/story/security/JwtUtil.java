@@ -2,6 +2,8 @@ package com.coursework.story.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
@@ -9,8 +11,18 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private static final String SECRET_KEY = "mySuperSecretKeyThatIsAtLeast32CharactersLong!!";
-    private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+    @Value("${story.app.jwtSecret}")
+    private String secretKey;
+    private Key key;
+
+    @PostConstruct
+    public void init() {
+        if (secretKey == null || secretKey.isEmpty()) {
+            throw new IllegalArgumentException("JWT secret key is not set in the application properties.");
+        }
+        this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
+    }
+
 
     public String generateToken(String username) {
         return Jwts.builder()
