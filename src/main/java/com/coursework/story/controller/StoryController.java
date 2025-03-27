@@ -19,7 +19,7 @@ public class StoryController {
         return storyService.getStories();
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public Story saveStory(@RequestBody Story story) {
         return storyService.saveStory(story);
     }
