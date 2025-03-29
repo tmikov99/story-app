@@ -1,5 +1,6 @@
 package com.coursework.story.controller;
 
+import com.coursework.story.dto.StoryDTO;
 import com.coursework.story.model.Story;
 import com.coursework.story.service.StoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,7 @@ public class StoryController {
     StoryService storyService;
 
     @GetMapping
-    public List<Story> getStories() {
+    public List<StoryDTO> getStories() {
         return storyService.getStories();
     }
 
