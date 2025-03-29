@@ -12,7 +12,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
+import static org.springframework.http.HttpMethod.*;
 
 @Configuration
 public class SecurityConfig {
@@ -32,8 +32,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/story").permitAll()
+                        .requestMatchers("/story/**").permitAll()
+                        .requestMatchers("/page/**").permitAll()
                         .requestMatchers("/story/create").authenticated()
+                        .requestMatchers(PUT, "/page/**").authenticated()
+                        .requestMatchers(DELETE, "/page/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
