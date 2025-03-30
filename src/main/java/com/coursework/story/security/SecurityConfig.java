@@ -37,6 +37,8 @@ public class SecurityConfig {
                         .requestMatchers("/story/create").authenticated()
                         .requestMatchers(PUT, "/page/**").authenticated()
                         .requestMatchers(DELETE, "/page/**").authenticated()
+                        .requestMatchers(GET, "/api/comments/**").permitAll()
+                        .requestMatchers(POST, "/api/comments/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
