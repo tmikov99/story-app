@@ -9,11 +9,20 @@ public class StoryDTO {
     private String title;
     private List<Page> pages;
     private Long userId;
+    private Integer pageCount;
 
-    public StoryDTO(Long id, String title, List<Page> pages, Long userId) {
+    public StoryDTO(Long id, String title, List<Page> pages, Integer pageCount, Long userId) {
         this.id = id;
         this.title = title;
         this.pages = pages;
+        this.pageCount = pageCount;
+        this.userId = userId;
+    }
+
+    public StoryDTO(Long id, String title, Integer pageCount, Long userId) {
+        this.id = id;
+        this.title = title;
+        this.pageCount = pageCount;
         this.userId = userId;
     }
 
@@ -39,6 +48,14 @@ public class StoryDTO {
 
     public void setPages(List<Page> pages) {
         this.pages = pages;
+    }
+
+    public Integer getPageCount() {
+        return pageCount;
+    }
+
+    public void setPageCount(Integer pageCount) {
+        this.pageCount = pageCount;
     }
 
     public Long getUserId() {

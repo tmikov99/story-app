@@ -22,6 +22,8 @@ public class Story {
     @JsonManagedReference
     private List<Page> pages;
 
+    private Integer pageCount;
+
     public String getTitle() {
         return title;
     }
@@ -47,6 +49,7 @@ public class Story {
         for (Page page : pages) {
             page.setStory(this);  // Ensure the bidirectional relationship is maintained
         }
+        setPageCount();
     }
 
     public Long getId() {
@@ -55,6 +58,14 @@ public class Story {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Integer getPageCount() {
+        return pageCount;
+    }
+
+    public void setPageCount() {
+        this.pageCount = pages.size();
     }
 
 }
