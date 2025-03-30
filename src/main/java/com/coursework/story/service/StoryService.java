@@ -28,9 +28,21 @@ public class StoryService {
         List<Story> stories = storyRepository.findAll();
         List<StoryDTO> storyDTOs = new ArrayList<>();
         for (Story story : stories) {
-            storyDTOs.add(new StoryDTO(story.getId(), story.getTitle(), story.getPages(), story.getUser().getId()));
+            storyDTOs.add(new StoryDTO(story.getId(), story.getTitle(), story.getPageCount(), story.getUser().getId()));
         }
         return storyDTOs;
+    }
+
+    public StoryDTO getStoryById(Long storyId) {
+        Story story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new RuntimeException("Page not found"));
+        return new StoryDTO(story.getId(), story.getTitle(), story.getPages(), story.getPageCount(), story.getUser().getId());
+    }
+
+    public StoryDTO getStoryPreviewById(Long storyId) {
+        Story story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new RuntimeException("Page not found"));
+        return new StoryDTO(story.getId(), story.getTitle(), story.getPageCount(), story.getUser().getId());
     }
 
     @Transactional
