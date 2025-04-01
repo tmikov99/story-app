@@ -38,14 +38,28 @@ public class JwtUtil {
     }
 
 
-    public String generateToken(String username) {
+    public String generateAccessToken(String username) {
+        // 15 minutes
+        long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 15;
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
+
+    public String generateRefreshToken(String username) {
+        // 7 days
+        long REFRESH_TOKEN_EXPIRATION = 1000 * 60 * 60 * 24 * 7;
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
 
     public boolean validateToken(String token) {
         try {
