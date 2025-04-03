@@ -25,7 +25,7 @@ public class Page {
     @ElementCollection
     @CollectionTable(name = "page_choices", joinColumns = @JoinColumn(name = "page_id"))
     @Column(name = "choice")
-    private List<Choice> choices; // List of choices
+    private List<Choice> choices;
 
     public List<Choice> getChoices() {
         return choices;
@@ -49,5 +49,9 @@ public class Page {
 
     public void setStory(Story story) {
         this.story = story;
+    }
+
+    public boolean isEndPage() {
+        return choices == null || choices.isEmpty();
     }
 }
