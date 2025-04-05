@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "story")
+@RequestMapping(value = "/api/story")
 public class StoryController {
 
     @Autowired
