@@ -12,6 +12,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
+
 import static org.springframework.http.HttpMethod.*;
 
 @Configuration
@@ -27,16 +29,17 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/story/**").permitAll()
-                        .requestMatchers("/page/**").permitAll()
-                        .requestMatchers("/story/create").authenticated()
-                        .requestMatchers(PUT, "/page/**").authenticated()
-                        .requestMatchers(DELETE, "/page/**").authenticated()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/story/**").permitAll()
+                        .requestMatchers("/api/page/**").permitAll()
+                        .requestMatchers("/api/story/create").authenticated()
+                        .requestMatchers(PUT, "/api/page/**").authenticated()
+                        .requestMatchers(DELETE, "/api/page/**").authenticated()
                         .requestMatchers(GET, "/api/comments/**").permitAll()
                         .requestMatchers(POST, "/api/comments/**").authenticated()
                         .requestMatchers(GET,"/api/playthrough/**").authenticated()

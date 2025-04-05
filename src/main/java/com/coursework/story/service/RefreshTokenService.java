@@ -20,11 +20,18 @@ public class RefreshTokenService {
     }
 
     public RefreshToken createRefreshToken(User user) {
-        RefreshToken refreshToken = new RefreshToken();
+        Optional<RefreshToken> existingToken = refreshTokenRepository.findByUser(user);
+
+        RefreshToken refreshToken = existingToken.orElse(new RefreshToken());
         refreshToken.setUser(user);
         refreshToken.setToken(jwtUtil.generateRefreshToken(user.getUsername()));
         refreshToken.setExpiryDate(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7)); // 7 days
         return refreshTokenRepository.save(refreshToken);
+    }
+
+    public RefreshToken verifyRefreshToken(String token) {
+        return validateRefreshToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid or expired refresh token"));
     }
 
     public Optional<RefreshToken> validateRefreshToken(String token) {

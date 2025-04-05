@@ -16,7 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -59,5 +59,13 @@ public class AuthController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @GetMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@CookieValue("refreshToken") String refreshTokenValue) {
+        RefreshToken refreshToken = refreshTokenService.verifyRefreshToken(refreshTokenValue);
+        String accessToken = jwtUtil.generateAccessToken(refreshToken.getUser().getUsername());
+
+        return ResponseEntity.ok(new AuthResponse(accessToken));
     }
 }

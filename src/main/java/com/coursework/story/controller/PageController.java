@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "page")
+@RequestMapping(value = "/api/page")
 public class PageController {
 
     private final PageService pageService;
