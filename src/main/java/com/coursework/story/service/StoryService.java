@@ -28,7 +28,7 @@ public class StoryService {
         List<Story> stories = storyRepository.findAll();
         List<StoryDTO> storyDTOs = new ArrayList<>();
         for (Story story : stories) {
-            storyDTOs.add(new StoryDTO(story.getId(), story.getTitle(), story.getPageCount(), story.getUser().getId()));
+            storyDTOs.add(new StoryDTO(story));
         }
         return storyDTOs;
     }
@@ -36,17 +36,17 @@ public class StoryService {
     public StoryDTO getStoryById(Long storyId) {
         Story story = storyRepository.findById(storyId)
                 .orElseThrow(() -> new RuntimeException("Page not found"));
-        return new StoryDTO(story.getId(), story.getTitle(), story.getPages(), story.getPageCount(), story.getUser().getId());
+        return new StoryDTO(story);
     }
 
     public StoryDTO getStoryPreviewById(Long storyId) {
         Story story = storyRepository.findById(storyId)
                 .orElseThrow(() -> new RuntimeException("Page not found"));
-        return new StoryDTO(story.getId(), story.getTitle(), story.getPageCount(), story.getUser().getId());
+        return new StoryDTO(story);
     }
 
     @Transactional
-    public Story saveStory(Story story) {
+    public StoryDTO saveStory(Story story) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = userDetails.getUsername();
 
@@ -55,6 +55,7 @@ public class StoryService {
 
         story.setUser(user);
 
-        return storyRepository.save(story);
+        Story savedStory = storyRepository.save(story);
+        return new StoryDTO(savedStory);
     }
 }
