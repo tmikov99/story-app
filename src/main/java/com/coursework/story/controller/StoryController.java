@@ -33,7 +33,7 @@ public class StoryController {
     }
 
     @PostMapping("/create")
-    public Story saveStory(@RequestBody Story story) {
+    public StoryDTO saveStory(@RequestBody Story story) {
         return storyService.saveStory(story);
     }
 }
