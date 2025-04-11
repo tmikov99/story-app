@@ -48,7 +48,7 @@ public class AuthController {
         cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
         response.addCookie(cookie);
 
-        return new AuthResponse(token);
+        return new AuthResponse(token, request.getUsername());
     }
 
     @PostMapping("/register")
@@ -66,6 +66,6 @@ public class AuthController {
         RefreshToken refreshToken = refreshTokenService.verifyRefreshToken(refreshTokenValue);
         String accessToken = jwtUtil.generateAccessToken(refreshToken.getUser().getUsername());
 
-        return ResponseEntity.ok(new AuthResponse(accessToken));
+        return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken.getUser().getUsername()));
     }
 }
