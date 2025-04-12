@@ -19,7 +19,7 @@ public class Page {
 
     @ElementCollection
     @CollectionTable(name = "page_paragraphs", joinColumns = @JoinColumn(name = "page_id"))
-    @Column(name = "paragraph")
+    @Column(name = "paragraph", length = 2000)
     private List<String> paragraphs;
 
     @ElementCollection

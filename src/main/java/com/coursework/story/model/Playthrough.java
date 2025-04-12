@@ -1,7 +1,9 @@
 package com.coursework.story.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -24,8 +26,10 @@ public class Playthrough {
     private Page currentPage;
 
     @ElementCollection
-    private List<Long> chosenPaths;
+    private List<Long> path;
 
+    @UpdateTimestamp
+    private LocalDateTime lastVisited;
     private boolean completed;
 
     public Long getId() {
@@ -60,12 +64,16 @@ public class Playthrough {
         this.currentPage = currentPage;
     }
 
-    public List<Long> getChosenPaths() {
-        return chosenPaths;
+    public List<Long> getPath() {
+        return path;
     }
 
-    public void setChosenPaths(List<Long> chosenPaths) {
-        this.chosenPaths = chosenPaths;
+    public void setPath(List<Long> path) {
+        this.path = path;
+    }
+
+    public LocalDateTime getLastVisited() {
+        return lastVisited;
     }
 
     public boolean isCompleted() {

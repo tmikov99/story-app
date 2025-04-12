@@ -1,11 +1,9 @@
 package com.coursework.story.controller;
 
-import com.coursework.story.model.Playthrough;
+import com.coursework.story.dto.PlaythroughDTO;
 import com.coursework.story.service.PlaythroughService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/playthrough")
@@ -17,18 +15,17 @@ public class PlaythroughController {
     }
 
     @PostMapping("/{storyId}/start")
-    public ResponseEntity<Playthrough> startPlaythrough(@PathVariable Long storyId) {
+    public ResponseEntity<PlaythroughDTO> startPlaythrough(@PathVariable Long storyId) {
         return ResponseEntity.ok(playthroughService.startPlaythrough(storyId));
     }
 
     @PutMapping("/{storyId}/choose/{nextPageId}")
-    public ResponseEntity<Playthrough> updatePlaythrough(@PathVariable Long storyId, @PathVariable Long nextPageId) {
+    public ResponseEntity<PlaythroughDTO> updatePlaythrough(@PathVariable Long storyId, @PathVariable Long nextPageId) {
         return ResponseEntity.ok(playthroughService.updatePlaythrough(storyId, nextPageId));
     }
 
     @GetMapping("/{storyId}")
-    public ResponseEntity<Playthrough> getPlaythrough(@PathVariable Long storyId) {
-        Optional<Playthrough> playthrough = playthroughService.getPlaythrough(storyId);
-        return playthrough.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<PlaythroughDTO> getPlaythrough(@PathVariable Long storyId) {
+       return ResponseEntity.ok(playthroughService.getPlaythrough(storyId));
     }
 }
