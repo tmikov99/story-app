@@ -22,6 +22,7 @@ public class StoryDTO {
     private Set<String> tags = new HashSet<>();
     private String description;
     private Integer pageCount;
+    private Long startPage;
     private StoryStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -35,6 +36,7 @@ public class StoryDTO {
         tags = story.getTags();
         description = story.getDescription();
         pageCount = story.getPageCount();
+        startPage = story.getPages().getFirst().getId();
         status = story.getStatus();
         createdAt = story.getCreatedAt();
         updatedAt = story.getUpdatedAt();
@@ -85,6 +87,14 @@ public class StoryDTO {
 
     public void setPageCount(Integer pageCount) {
         this.pageCount = pageCount;
+    }
+
+    public Long getStartPage() {
+        return startPage;
+    }
+
+    public void setStartPage(Long startPage) {
+        this.startPage = startPage;
     }
 
     public UserDTO getUser() {

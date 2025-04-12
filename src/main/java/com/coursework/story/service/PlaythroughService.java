@@ -1,5 +1,6 @@
 package com.coursework.story.service;
 
+import com.coursework.story.dto.PlaythroughDTO;
 import com.coursework.story.model.Page;
 import com.coursework.story.model.Playthrough;
 import com.coursework.story.model.Story;
@@ -12,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.Optional;
 
 @Service
@@ -28,7 +30,7 @@ public class PlaythroughService {
         this.userRepository = userRepository;
     }
 
-    public Playthrough startPlaythrough(Long storyId) {
+    public PlaythroughDTO startPlaythrough(Long storyId) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = userDetails.getUsername();
 
@@ -37,19 +39,22 @@ public class PlaythroughService {
 
         Optional<Playthrough> existingPlaythrough = playthroughRepository.findByUserAndStory(user, story);
         if (existingPlaythrough.isPresent()) {
-            return existingPlaythrough.get();
+            return new PlaythroughDTO(existingPlaythrough.get());
         }
 
         Playthrough playthrough = new Playthrough();
         playthrough.setUser(user);
         playthrough.setStory(story);
-        playthrough.setCurrentPage(story.getPages().get(0));
+        playthrough.setCurrentPage(story.getPages().getFirst());
+        playthrough.setPath(Collections.singletonList(story.getPages().getFirst().getId()));
         playthrough.setCompleted(false);
 
-        return playthroughRepository.save(playthrough);
+        Playthrough savedPlaythrough = playthroughRepository.save(playthrough);
+
+        return new PlaythroughDTO(savedPlaythrough);
     }
 
-    public Playthrough updatePlaythrough(Long storyId, Long nextPageId) {
+    public PlaythroughDTO updatePlaythrough(Long storyId, Long nextPageId) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = userDetails.getUsername();
 
@@ -61,21 +66,25 @@ public class PlaythroughService {
                 .orElseThrow(() -> new RuntimeException("Playthrough not found"));
 
         playthrough.setCurrentPage(nextPage);
-        playthrough.getChosenPaths().add(nextPageId);
+        playthrough.getPath().add(nextPageId);
 
         if (nextPage.isEndPage()) {
             playthrough.setCompleted(true);
         }
 
-        return playthroughRepository.save(playthrough);
+        Playthrough savedPlaythrough = playthroughRepository.save(playthrough);
+
+        return new PlaythroughDTO(savedPlaythrough);
     }
 
-    public Optional<Playthrough> getPlaythrough(Long storyId) {
+    public PlaythroughDTO getPlaythrough(Long storyId) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = userDetails.getUsername();
 
         User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
         Story story = storyRepository.findById(storyId).orElseThrow(() -> new RuntimeException("Story not found"));
-        return playthroughRepository.findByUserAndStory(user, story);
+        Playthrough playthrough = playthroughRepository.findByUserAndStory(user, story).orElseThrow(() -> new RuntimeException("Playthrough not found"));
+
+        return new PlaythroughDTO(playthrough);
     }
 }
