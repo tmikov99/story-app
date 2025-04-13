@@ -46,7 +46,7 @@ public class PlaythroughService {
         playthrough.setUser(user);
         playthrough.setStory(story);
         playthrough.setCurrentPage(story.getPages().getFirst());
-        playthrough.setPath(Collections.singletonList(story.getPages().getFirst().getId()));
+        playthrough.setPath(Collections.singletonList(story.getPages().getFirst().getPageNumber()));
         playthrough.setCompleted(false);
 
         Playthrough savedPlaythrough = playthroughRepository.save(playthrough);
@@ -54,19 +54,19 @@ public class PlaythroughService {
         return new PlaythroughDTO(savedPlaythrough);
     }
 
-    public PlaythroughDTO updatePlaythrough(Long storyId, Long nextPageId) {
+    public PlaythroughDTO updatePlaythrough(Long storyId, int pageNumber) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = userDetails.getUsername();
 
         User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
         Story story = storyRepository.findById(storyId).orElseThrow(() -> new RuntimeException("Story not found"));
-        Page nextPage = pageRepository.findById(nextPageId).orElseThrow(() -> new RuntimeException("Page not found"));
+        Page nextPage = pageRepository.findByStoryIdAndPageNumber(storyId, pageNumber).orElseThrow(() -> new RuntimeException("Page not found"));
 
         Playthrough playthrough = playthroughRepository.findByUserAndStory(user, story)
                 .orElseThrow(() -> new RuntimeException("Playthrough not found"));
 
         playthrough.setCurrentPage(nextPage);
-        playthrough.getPath().add(nextPageId);
+        playthrough.getPath().add(pageNumber);
 
         if (nextPage.isEndPage()) {
             playthrough.setCompleted(true);

@@ -5,7 +5,9 @@ import com.coursework.story.model.Page;
 import com.coursework.story.model.Story;
 import com.coursework.story.model.User;
 import com.coursework.story.repository.PageRepository;
+import com.coursework.story.repository.StoryRepository;
 import com.coursework.story.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,10 +20,12 @@ public class PageService {
 
     private final PageRepository pageRepository;
     private final UserRepository userRepository;
+    private final StoryRepository storyRepository;
 
-    public PageService(PageRepository pageRepository, UserRepository userRepository) {
+    public PageService(PageRepository pageRepository, UserRepository userRepository, StoryRepository storyRepository) {
         this.pageRepository = pageRepository;
         this.userRepository = userRepository;
+        this.storyRepository = storyRepository;
     }
 
     public Page getPageById(Long pageId) {
@@ -29,8 +33,13 @@ public class PageService {
                 .orElseThrow(() -> new RuntimeException("Page not found"));
     }
 
+    public Page getPageByStoryAndNumber(Long storyId, int pageNumber) {
+        return pageRepository.findByStoryIdAndPageNumber(storyId, pageNumber)
+                .orElseThrow(() -> new RuntimeException("Page not found"));
+    }
+
     public List<Page> getPagesByStoryId(Long storyId) {
-        return pageRepository.findByStoryId(storyId);
+        return pageRepository.findAllByStoryIdOrderByPageNumber(storyId);
     }
 
     @Transactional
@@ -47,9 +56,31 @@ public class PageService {
             throw new RuntimeException("You are not allowed to edit this page");
         }
 
+        page.setPageNumber(newPage.getPageNumber());
         page.setParagraphs(newPage.getParagraphs());
         page.setChoices((newPage.getChoices()));
         return pageRepository.save(page);
+    }
+
+    @Transactional
+    public PageDTO savePage(PageDTO newPage) {
+        Story story = storyRepository.findById(newPage.getStoryId())
+                .orElseThrow(() -> new EntityNotFoundException("Story not found"));
+
+        boolean pageExists = pageRepository.existsByStoryIdAndPageNumber(newPage.getStoryId(), newPage.getPageNumber());
+        if (pageExists) {
+            throw new IllegalArgumentException("Page number already exists for this story");
+        }
+
+        Page page = new Page();
+        page.setPageNumber(newPage.getPageNumber());
+        page.setParagraphs(newPage.getParagraphs());
+        page.setChoices(newPage.getChoices());
+        page.setStory(story);
+
+        Page savedPage = pageRepository.save(page);
+
+        return new PageDTO(savedPage);
     }
 
     @Transactional

@@ -36,7 +36,7 @@ public class StoryService {
     public StoryDTO getStoryById(Long storyId) {
         Story story = storyRepository.findById(storyId)
                 .orElseThrow(() -> new RuntimeException("Page not found"));
-        return new StoryDTO(story);
+        return new StoryDTO(story, story.getPages());
     }
 
     public StoryDTO getStoryPreviewById(Long storyId) {

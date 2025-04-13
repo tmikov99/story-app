@@ -19,9 +19,9 @@ public class PlaythroughController {
         return ResponseEntity.ok(playthroughService.startPlaythrough(storyId));
     }
 
-    @PutMapping("/{storyId}/choose/{nextPageId}")
-    public ResponseEntity<PlaythroughDTO> updatePlaythrough(@PathVariable Long storyId, @PathVariable Long nextPageId) {
-        return ResponseEntity.ok(playthroughService.updatePlaythrough(storyId, nextPageId));
+    @PutMapping("/{storyId}/choose/{nextPage}")
+    public ResponseEntity<PlaythroughDTO> updatePlaythrough(@PathVariable Long storyId, @PathVariable int nextPage) {
+        return ResponseEntity.ok(playthroughService.updatePlaythrough(storyId, nextPage));
     }
 
     @GetMapping("/{storyId}")
