@@ -18,11 +18,11 @@ public class StoryDTO {
     private List<PageDTO> pages;
     private UserDTO user;
     private String coverImageUrl;
-    private List<Genre> genres = new ArrayList<>();
-    private Set<String> tags = new HashSet<>();
+    private List<Genre> genres;
+    private Set<String> tags;
     private String description;
     private Integer pageCount;
-    private Long startPage;
+    private Integer startPage;
     private StoryStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -36,7 +36,7 @@ public class StoryDTO {
         tags = story.getTags();
         description = story.getDescription();
         pageCount = story.getPageCount();
-        startPage = story.getPages().getFirst().getId();
+        startPage = story.getPages().getFirst().getPageNumber();
         status = story.getStatus();
         createdAt = story.getCreatedAt();
         updatedAt = story.getUpdatedAt();
@@ -89,11 +89,11 @@ public class StoryDTO {
         this.pageCount = pageCount;
     }
 
-    public Long getStartPage() {
+    public Integer getStartPage() {
         return startPage;
     }
 
-    public void setStartPage(Long startPage) {
+    public void setStartPage(Integer startPage) {
         this.startPage = startPage;
     }
 

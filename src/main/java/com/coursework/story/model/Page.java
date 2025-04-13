@@ -17,6 +17,9 @@ public class Page {
     @JsonBackReference
     private Story story;
 
+    @Column(nullable = false)
+    private int pageNumber;
+
     @ElementCollection
     @CollectionTable(name = "page_paragraphs", joinColumns = @JoinColumn(name = "page_id"))
     @Column(name = "paragraph", length = 2000)
@@ -41,6 +44,14 @@ public class Page {
 
     public void setChoices(List<Choice> choices) {
         this.choices = choices;
+    }
+
+    public int getPageNumber() {
+        return pageNumber;
+    }
+
+    public void setPageNumber(int pageNumber) {
+        this.pageNumber = pageNumber;
     }
 
     public List<String> getParagraphs() {

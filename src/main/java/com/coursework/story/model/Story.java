@@ -122,7 +122,7 @@ public class Story {
     }
 
     public Integer getPageCount() {
-        return pageCount;
+        return pages.size();
     }
 
     public void setPageCount() {

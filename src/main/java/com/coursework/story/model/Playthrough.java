@@ -26,7 +26,7 @@ public class Playthrough {
     private Page currentPage;
 
     @ElementCollection
-    private List<Long> path;
+    private List<Integer> path;
 
     @UpdateTimestamp
     private LocalDateTime lastVisited;
@@ -64,11 +64,11 @@ public class Playthrough {
         this.currentPage = currentPage;
     }
 
-    public List<Long> getPath() {
+    public List<Integer> getPath() {
         return path;
     }
 
-    public void setPath(List<Long> path) {
+    public void setPath(List<Integer> path) {
         this.path = path;
     }
 

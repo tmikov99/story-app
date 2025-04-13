@@ -11,13 +11,19 @@ public class PageDTO {
 
     private Long storyId;
 
+    private Integer pageNumber;
+
     private List<String> paragraphs;
 
     private List<Choice> choices;
 
+    public PageDTO() {
+    }
+
     public PageDTO(Page page) {
         id = page.getId();
         storyId = page.getStory().getId();
+        pageNumber = page.getPageNumber();
         paragraphs = page.getParagraphs();
         choices = page.getChoices();
     }
@@ -28,6 +34,22 @@ public class PageDTO {
 
     public void setChoices(List<Choice> choices) {
         this.choices = choices;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Integer getPageNumber() {
+        return pageNumber;
+    }
+
+    public void setPageNumber(Integer pageNumber) {
+        this.pageNumber = pageNumber;
     }
 
     public List<String> getParagraphs() {
