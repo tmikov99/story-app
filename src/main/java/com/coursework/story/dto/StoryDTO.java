@@ -36,7 +36,7 @@ public class StoryDTO {
         tags = story.getTags();
         description = story.getDescription();
         pageCount = story.getPageCount();
-        startPage = story.getPages().getFirst().getPageNumber();
+        startPage = 1;
         status = story.getStatus();
         createdAt = story.getCreatedAt();
         updatedAt = story.getUpdatedAt();

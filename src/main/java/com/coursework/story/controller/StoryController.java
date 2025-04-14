@@ -1,6 +1,7 @@
 package com.coursework.story.controller;
 
 import com.coursework.story.dto.StoryDTO;
+import com.coursework.story.model.Genre;
 import com.coursework.story.model.Page;
 import com.coursework.story.model.Story;
 import com.coursework.story.service.StoryService;
@@ -35,5 +36,10 @@ public class StoryController {
     @PostMapping("/create")
     public StoryDTO saveStory(@RequestBody Story story) {
         return storyService.saveStory(story);
+    }
+
+    @GetMapping("/genres")
+    public List<Genre> getGenres() {
+        return List.of(Genre.values());
     }
 }
