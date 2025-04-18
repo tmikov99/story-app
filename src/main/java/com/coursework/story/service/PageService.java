@@ -56,6 +56,7 @@ public class PageService {
             throw new RuntimeException("You are not allowed to edit this page");
         }
 
+        page.setTitle(newPage.getTitle());
         page.setPageNumber(newPage.getPageNumber());
         page.setParagraphs(newPage.getParagraphs());
         page.setChoices((newPage.getChoices()));
@@ -73,6 +74,7 @@ public class PageService {
         }
 
         Page page = new Page();
+        page.setTitle(newPage.getTitle());
         page.setPageNumber(newPage.getPageNumber());
         page.setParagraphs(newPage.getParagraphs());
         page.setChoices(newPage.getChoices());

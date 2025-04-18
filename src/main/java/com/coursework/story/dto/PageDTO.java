@@ -9,6 +9,8 @@ public class PageDTO {
 
     private Long id;
 
+    private String title;
+
     private Long storyId;
 
     private Integer pageNumber;
@@ -22,10 +24,19 @@ public class PageDTO {
 
     public PageDTO(Page page) {
         id = page.getId();
+        title = page.getTitle();
         storyId = page.getStory().getId();
         pageNumber = page.getPageNumber();
         paragraphs = page.getParagraphs();
         choices = page.getChoices();
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public List<Choice> getChoices() {
