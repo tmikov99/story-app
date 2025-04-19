@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -40,6 +41,19 @@ public class PageService {
 
     public List<Page> getPagesByStoryId(Long storyId) {
         return pageRepository.findAllByStoryIdOrderByPageNumber(storyId);
+    }
+
+    public List<PageDTO> getPagesMapByStoryId(Long storyId) {
+        List<Page> pages = pageRepository.findAllByStoryId(storyId);
+        List<PageDTO> pagesDTOs = new ArrayList<>();
+        for (Page page : pages) {
+            PageDTO pageDTO = new PageDTO(page);
+            pageDTO.setPositionX(page.getPositionX());
+            pageDTO.setPositionY(page.getPositionY());
+            pagesDTOs.add(pageDTO);
+        }
+
+        return pagesDTOs;
     }
 
     @Transactional
