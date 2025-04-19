@@ -34,6 +34,11 @@ public class PageController {
         return ResponseEntity.ok(pageService.getPagesByStoryId(storyId));
     }
 
+    @GetMapping("/story/{storyId}/map")
+    public ResponseEntity<List<PageDTO>> getPagesMapByStory(@PathVariable Long storyId) {
+        return ResponseEntity.ok(pageService.getPagesMapByStoryId(storyId));
+    }
+
     @PutMapping("/{pageId}")
     public ResponseEntity<Page> updatePage(@PathVariable Long pageId, @RequestBody PageDTO newPage) {
         return ResponseEntity.ok(pageService.updatePage(pageId, newPage));

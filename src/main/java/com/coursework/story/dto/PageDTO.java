@@ -19,6 +19,13 @@ public class PageDTO {
 
     private List<Choice> choices;
 
+    private Double positionX;
+
+    private Double positionY;
+
+    private boolean isEndPage;
+
+
     public PageDTO() {
     }
 
@@ -29,6 +36,7 @@ public class PageDTO {
         pageNumber = page.getPageNumber();
         paragraphs = page.getParagraphs();
         choices = page.getChoices();
+        isEndPage = page.isEndPage();
     }
 
     public String getTitle() {
@@ -77,5 +85,29 @@ public class PageDTO {
 
     public void setStoryId(Long storyId) {
         this.storyId = storyId;
+    }
+
+    public Double getPositionX() {
+        return positionX;
+    }
+
+    public void setPositionX(Double positionX) {
+        this.positionX = positionX;
+    }
+
+    public Double getPositionY() {
+        return positionY;
+    }
+
+    public void setPositionY(Double positionY) {
+        this.positionY = positionY;
+    }
+
+    public boolean isEndPage() {
+        return isEndPage;
+    }
+
+    public void setEndPage(boolean endPage) {
+        isEndPage = endPage;
     }
 }

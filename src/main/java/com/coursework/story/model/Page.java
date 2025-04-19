@@ -32,6 +32,12 @@ public class Page {
     @Column(name = "choice")
     private List<Choice> choices;
 
+    @Column(name = "position_x")
+    private Double positionX;
+
+    @Column(name = "position_y")
+    private Double positionY;
+
     public Long getId() {
         return id;
     }
@@ -82,5 +88,21 @@ public class Page {
 
     public boolean isEndPage() {
         return choices == null || choices.isEmpty();
+    }
+
+    public Double getPositionX() {
+        return positionX;
+    }
+
+    public void setPositionX(Double positionX) {
+        this.positionX = positionX;
+    }
+
+    public Double getPositionY() {
+        return positionY;
+    }
+
+    public void setPositionY(Double positionY) {
+        this.positionY = positionY;
     }
 }

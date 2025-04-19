@@ -1,12 +1,11 @@
 package com.coursework.story.controller;
 
+import com.coursework.story.dto.PageDTO;
 import com.coursework.story.dto.StoryDTO;
 import com.coursework.story.model.Genre;
-import com.coursework.story.model.Page;
 import com.coursework.story.model.Story;
 import com.coursework.story.service.StoryService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,5 +40,10 @@ public class StoryController {
     @GetMapping("/genres")
     public List<Genre> getGenres() {
         return List.of(Genre.values());
+    }
+
+    @PutMapping("/pages/{storyId}")
+    public void updatePagesBysStoryId(@PathVariable Long storyId, @RequestBody List<PageDTO> pages) {
+        storyService.updatePages(storyId, pages);
     }
 }

@@ -13,5 +13,8 @@ public interface PageRepository extends JpaRepository<Page, Long> {
 
     List<Page> findAllByStoryIdOrderByPageNumber(Long storyId);
 
+    List<Page> findAllByStoryId(Long storyId);
+
     boolean existsByStoryIdAndPageNumber(Long storyId, int pageNumber);
+
 }
