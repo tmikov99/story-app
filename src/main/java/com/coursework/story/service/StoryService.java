@@ -51,6 +51,7 @@ public class StoryService {
         return new StoryDTO(story);
     }
 
+    @Transactional
     public void updatePages(Long storyId, List<PageDTO> updatedPages) {
         Optional<Story> optionalStory = storyRepository.findById(storyId);
         if (optionalStory.isEmpty()) {
@@ -101,6 +102,8 @@ public class StoryService {
 
             pageRepository.save(page);
         }
+        story.touch();
+        storyRepository.save(story);
     }
 
     @Transactional

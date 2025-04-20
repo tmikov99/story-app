@@ -74,6 +74,8 @@ public class PageService {
         page.setPageNumber(newPage.getPageNumber());
         page.setParagraphs(newPage.getParagraphs());
         page.setChoices((newPage.getChoices()));
+        page.setPositionX(newPage.getPositionX());
+        page.setPositionY(newPage.getPositionY());
         return pageRepository.save(page);
     }
 
@@ -89,9 +91,11 @@ public class PageService {
 
         Page page = new Page();
         page.setTitle(newPage.getTitle());
-        page.setPageNumber(newPage.getPageNumber());
+        page.setPageNumber(story.getFirstAvailablePageNumber());
         page.setParagraphs(newPage.getParagraphs());
         page.setChoices(newPage.getChoices());
+        page.setPositionX(newPage.getPositionX());
+        page.setPositionY(newPage.getPositionY());
         page.setStory(story);
 
         Page savedPage = pageRepository.save(page);

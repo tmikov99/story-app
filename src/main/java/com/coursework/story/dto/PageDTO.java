@@ -36,6 +36,8 @@ public class PageDTO {
         pageNumber = page.getPageNumber();
         paragraphs = page.getParagraphs();
         choices = page.getChoices();
+        positionX = page.getPositionX();
+        positionY = page.getPositionY();
         isEndPage = page.isEndPage();
     }
 

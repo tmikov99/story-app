@@ -6,10 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Entity(name = "stories")
 public class Story {
@@ -52,6 +49,24 @@ public class Story {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    public void touch() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public int getFirstAvailablePageNumber() {
+        Set<Integer> usedPageNumbers = new HashSet<>();
+        for (Page page : pages) {
+            usedPageNumbers.add(page.getPageNumber());
+        }
+
+        int pageNumber = 1;
+        while (usedPageNumbers.contains(pageNumber)) {
+            pageNumber++;
+        }
+
+        return pageNumber;
+    }
 
     public String getTitle() {
         return title;
