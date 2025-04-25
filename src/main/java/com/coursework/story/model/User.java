@@ -24,6 +24,20 @@ public class User implements UserDetails {
     @ElementCollection(fetch = FetchType.EAGER)
     private Set<String> roles;
 
+    @ManyToMany
+    @JoinTable(
+            name = "user_likes",
+            joinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<Story> likedStories;
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_favorites",
+            joinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<Story> favoriteStories;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()
@@ -91,5 +105,21 @@ public class User implements UserDetails {
 
     public void setRoles(Set<String> roles) {
         this.roles = roles;
+    }
+
+    public Set<Story> getLikedStories() {
+        return likedStories;
+    }
+
+    public void setLikedStories(Set<Story> likedStories) {
+        this.likedStories = likedStories;
+    }
+
+    public Set<Story> getFavoriteStories() {
+        return favoriteStories;
+    }
+
+    public void setFavoriteStories(Set<Story> favoriteStories) {
+        this.favoriteStories = favoriteStories;
     }
 }
