@@ -1,6 +1,6 @@
 package com.coursework.story.controller;
 
-import com.coursework.story.model.Comment;
+import com.coursework.story.dto.CommentDTO;
 import com.coursework.story.service.CommentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,12 +18,12 @@ public class CommentController {
     }
 
     @PostMapping("/story/{storyId}")
-    public ResponseEntity<Comment> addComment(@PathVariable Long storyId, @RequestBody Comment comment) {
+    public ResponseEntity<CommentDTO> addComment(@PathVariable Long storyId, @RequestBody String comment) {
         return ResponseEntity.ok(commentService.addComment(storyId, comment));
     }
 
     @GetMapping("/story/{storyId}")
-    public ResponseEntity<List<Comment>> getComments(@PathVariable Long storyId) {
+    public ResponseEntity<List<CommentDTO>> getComments(@PathVariable Long storyId) {
         return ResponseEntity.ok(commentService.getCommentsByStory(storyId));
     }
 }

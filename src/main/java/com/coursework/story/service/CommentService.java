@@ -1,5 +1,6 @@
 package com.coursework.story.service;
 
+import com.coursework.story.dto.CommentDTO;
 import com.coursework.story.model.Comment;
 import com.coursework.story.model.Story;
 import com.coursework.story.model.User;
@@ -11,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CommentService {
@@ -25,7 +27,7 @@ public class CommentService {
         this.userRepository = userRepository;
     }
 
-    public Comment addComment(Long storyId, Comment comment) {
+    public CommentDTO addComment(Long storyId, String commentText) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
@@ -35,14 +37,18 @@ public class CommentService {
         Story story = storyRepository.findById(storyId)
                 .orElseThrow(() -> new RuntimeException("Story not found"));
 
+        Comment comment = new Comment();
+
         comment.setStory(story);
         comment.setUser(user);
-        comment.setText(comment.getText());
+        comment.setText(commentText);
 
-        return commentRepository.save(comment);
+        return new CommentDTO(commentRepository.save(comment));
     }
 
-    public List<Comment> getCommentsByStory(Long storyId) {
-        return commentRepository.findByStoryId(storyId);
+    public List<CommentDTO> getCommentsByStory(Long storyId) {
+        return commentRepository.findByStoryIdOrderByCreatedAt(storyId).stream()
+                .map(CommentDTO::new)
+                .collect(Collectors.toList());
     }
 }
