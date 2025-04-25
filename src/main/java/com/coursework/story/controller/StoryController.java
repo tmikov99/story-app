@@ -46,4 +46,24 @@ public class StoryController {
     public void updatePagesBysStoryId(@PathVariable Long storyId, @RequestBody List<PageDTO> pages) {
         storyService.updatePages(storyId, pages);
     }
+
+    @PostMapping("/like/{storyId}")
+    public void likeStory(@PathVariable Long storyId) {
+        storyService.toggleLikeStory(storyId);
+    }
+
+    @PostMapping("/favorite/{storyId}")
+    public void favoriteStory(@PathVariable Long storyId) {
+        storyService.toggleFavoriteStory(storyId);
+    }
+
+    @GetMapping("/liked")
+    public List<StoryDTO> getLikedStories() {
+        return storyService.getLikedStories();
+    }
+
+    @GetMapping("/favorite")
+    public List<StoryDTO> getFavoriteStories() {
+        return storyService.getFavoriteStories();
+    }
 }

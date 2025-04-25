@@ -24,8 +24,12 @@ public class StoryDTO {
     private Integer pageCount;
     private Integer startPage;
     private StoryStatus status;
+    private Boolean isLiked;
+    private Boolean isFavorite;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Integer likes;
+    private Integer favorites;
 
     public StoryDTO(Story story) {
         id = story.getId();
@@ -40,6 +44,27 @@ public class StoryDTO {
         status = story.getStatus();
         createdAt = story.getCreatedAt();
         updatedAt = story.getUpdatedAt();
+        likes = story.getLikes();
+        favorites = story.getFavorites();
+    }
+
+    public StoryDTO(Story story, boolean isLiked, boolean isFavorite) {
+        id = story.getId();
+        title = story.getTitle();
+        user = new UserDTO(story.getUser());
+        coverImageUrl = story.getCoverImageUrl();
+        genres = story.getGenres();
+        tags = story.getTags();
+        description = story.getDescription();
+        pageCount = story.getPageCount();
+        startPage = 1;
+        status = story.getStatus();
+        createdAt = story.getCreatedAt();
+        updatedAt = story.getUpdatedAt();
+        likes = story.getLikes();
+        favorites = story.getFavorites();
+        this.isLiked = isLiked;
+        this.isFavorite = isFavorite;
     }
 
     public StoryDTO(Story story, List<Page> pages) {
@@ -54,6 +79,8 @@ public class StoryDTO {
         status = story.getStatus();
         createdAt = story.getCreatedAt();
         updatedAt = story.getUpdatedAt();
+        likes = story.getLikes();
+        favorites = story.getFavorites();
         this.pages = pages.stream().map(PageDTO::new).collect(Collectors.toList());
     }
 
@@ -159,5 +186,37 @@ public class StoryDTO {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Boolean getLiked() {
+        return isLiked;
+    }
+
+    public void setLiked(Boolean liked) {
+        isLiked = liked;
+    }
+
+    public Boolean getFavorite() {
+        return isFavorite;
+    }
+
+    public void setFavorite(Boolean favorite) {
+        isFavorite = favorite;
+    }
+
+    public Integer getLikes() {
+        return likes;
+    }
+
+    public void setLikes(Integer likes) {
+        this.likes = likes;
+    }
+
+    public Integer getFavorites() {
+        return favorites;
+    }
+
+    public void setFavorites(Integer favorites) {
+        this.favorites = favorites;
     }
 }

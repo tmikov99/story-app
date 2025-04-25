@@ -44,6 +44,10 @@ public class Story {
     @Enumerated(EnumType.STRING)
     private StoryStatus status;
 
+    private int likes;
+
+    private int favorites;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -66,6 +70,22 @@ public class Story {
         }
 
         return pageNumber;
+    }
+
+    public void incrementLikes() {
+        this.likes++;
+    }
+
+    public void decrementLikes() {
+        this.likes = Math.max(0, this.likes - 1);
+    }
+
+    public void incrementFavorites() {
+        this.favorites++;
+    }
+
+    public void decrementFavorites() {
+        this.favorites = Math.max(0, this.favorites - 1);
     }
 
     public String getTitle() {
@@ -160,4 +180,19 @@ public class Story {
         return updatedAt;
     }
 
+    public int getLikes() {
+        return likes;
+    }
+
+    public void setLikes(int likes) {
+        this.likes = likes;
+    }
+
+    public int getFavorites() {
+        return favorites;
+    }
+
+    public void setFavorites(int favorites) {
+        this.favorites = favorites;
+    }
 }
