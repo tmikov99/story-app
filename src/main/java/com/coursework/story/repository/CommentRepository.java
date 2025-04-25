@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByStoryId(Long storyId);
+
+    List<Comment> findByStoryIdOrderByCreatedAt(Long storyId);
 }
