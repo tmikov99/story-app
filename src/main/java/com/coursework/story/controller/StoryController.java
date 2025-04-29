@@ -1,11 +1,13 @@
 package com.coursework.story.controller;
 
+import com.coursework.story.dto.LikeResponse;
 import com.coursework.story.dto.PageDTO;
 import com.coursework.story.dto.StoryDTO;
 import com.coursework.story.model.Genre;
 import com.coursework.story.model.Story;
 import com.coursework.story.service.StoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -48,13 +50,13 @@ public class StoryController {
     }
 
     @PostMapping("/like/{storyId}")
-    public void likeStory(@PathVariable Long storyId) {
-        storyService.toggleLikeStory(storyId);
+    public ResponseEntity<LikeResponse> likeStory(@PathVariable Long storyId) {
+        return ResponseEntity.ok(storyService.toggleLikeStory(storyId));
     }
 
     @PostMapping("/favorite/{storyId}")
-    public void favoriteStory(@PathVariable Long storyId) {
-        storyService.toggleFavoriteStory(storyId);
+    public ResponseEntity<Boolean> favoriteStory(@PathVariable Long storyId) {
+        return ResponseEntity.ok(storyService.toggleFavoriteStory(storyId));
     }
 
     @GetMapping("/liked")

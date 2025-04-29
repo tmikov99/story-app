@@ -1,5 +1,6 @@
 package com.coursework.story.service;
 
+import com.coursework.story.dto.LikeResponse;
 import com.coursework.story.dto.PageDTO;
 import com.coursework.story.dto.StoryDTO;
 import com.coursework.story.model.Page;
@@ -23,11 +24,14 @@ public class StoryService {
     private final StoryRepository storyRepository;
     private final UserRepository userRepository;
     private final PageRepository pageRepository;
+    private final NotificationService notificationService;
 
-    public StoryService(StoryRepository storyRepository, UserRepository userRepository, PageRepository pageRepository) {
+    public StoryService(StoryRepository storyRepository, UserRepository userRepository,
+                        PageRepository pageRepository, NotificationService notificationService) {
         this.storyRepository = storyRepository;
         this.userRepository = userRepository;
         this.pageRepository = pageRepository;
+        this.notificationService = notificationService;
     }
 
     public List<StoryDTO> getStories() {
@@ -133,7 +137,7 @@ public class StoryService {
     }
 
     @Transactional
-    public void toggleLikeStory(Long storyId) {
+    public LikeResponse toggleLikeStory(Long storyId) {
         User user = getAuthenticatedUser()
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -141,21 +145,31 @@ public class StoryService {
                 .orElseThrow(() -> new RuntimeException("Story not found"));
 
         Set<Story> likedStories = user.getLikedStories();
+        boolean response;
 
         if (likedStories.contains(story)) {
             likedStories.remove(story);
             story.decrementLikes();
+            response = false;
         } else {
             likedStories.add(story);
             story.incrementLikes();
+            response = true;
+            if (story.getLikes() == 10) {
+                notificationService.send(
+                        story.getUser(),
+                        "🎉 Your story \"" + story.getTitle() + "\" just reached 10 likes!"
+                );
+            }
         }
 
         userRepository.save(user);
-        storyRepository.save(story);
+        Story savedStory = storyRepository.save(story);
+        return new LikeResponse(response, savedStory.getLikes());
     }
 
     @Transactional
-    public void toggleFavoriteStory(Long storyId) {
+    public boolean toggleFavoriteStory(Long storyId) {
         User user = getAuthenticatedUser()
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -163,17 +177,21 @@ public class StoryService {
                 .orElseThrow(() -> new RuntimeException("Story not found"));
 
         Set<Story> favoriteStories = user.getFavoriteStories();
+        boolean response;
 
         if (favoriteStories.contains(story)) {
             favoriteStories.remove(story);
             story.decrementFavorites();
+            response = false;
         } else {
             favoriteStories.add(story);
             story.incrementFavorites();
+            response = true;
         }
 
         userRepository.save(user);
         storyRepository.save(story);
+        return response;
     }
 
     public List<StoryDTO> getLikedStories() {

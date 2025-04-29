@@ -7,11 +7,13 @@ import com.coursework.story.model.User;
 import com.coursework.story.repository.CommentRepository;
 import com.coursework.story.repository.StoryRepository;
 import com.coursework.story.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,13 +22,17 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final StoryRepository storyRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
-    public CommentService(CommentRepository commentRepository, StoryRepository storyRepository, UserRepository userRepository) {
+    public CommentService(CommentRepository commentRepository, StoryRepository storyRepository,
+                          UserRepository userRepository, NotificationService notificationService) {
         this.commentRepository = commentRepository;
         this.storyRepository = storyRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
+    @Transactional
     public CommentDTO addComment(Long storyId, String commentText) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
@@ -42,6 +48,13 @@ public class CommentService {
         comment.setStory(story);
         comment.setUser(user);
         comment.setText(commentText);
+
+        if (!Objects.equals(story.getUser().getId(), comment.getUser().getId())) {
+            notificationService.send(
+                    story.getUser(),
+                    "💬 Your story \"" + story.getTitle() + "\" received a new comment!"
+            );
+        }
 
         return new CommentDTO(commentRepository.save(comment));
     }
