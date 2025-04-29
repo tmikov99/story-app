@@ -37,6 +37,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/story/**").permitAll()
                         .requestMatchers("/api/page/**").permitAll()
+                        .requestMatchers("/api/notifications/**").permitAll()
+                        .requestMatchers("/api/notifications/**").authenticated()
                         .requestMatchers("/api/story/create").authenticated()
                         .requestMatchers(PUT, "/api/page/**").authenticated()
                         .requestMatchers(DELETE, "/api/page/**").authenticated()

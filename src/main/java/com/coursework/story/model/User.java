@@ -3,6 +3,7 @@ package com.coursework.story.model;
 import jakarta.persistence.*;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,9 @@ public class User implements UserDetails {
             joinColumns = @JoinColumn(name = "user_id")
     )
     private Set<Story> favoriteStories;
+
+    @OneToMany(mappedBy = "recipient", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notifications;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -121,5 +125,13 @@ public class User implements UserDetails {
 
     public void setFavoriteStories(Set<Story> favoriteStories) {
         this.favoriteStories = favoriteStories;
+    }
+
+    public List<Notification> getNotifications() {
+        return notifications;
+    }
+
+    public void setNotifications(List<Notification> notifications) {
+        this.notifications = notifications;
     }
 }
