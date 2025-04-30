@@ -21,6 +21,7 @@ public class User implements UserDetails {
     private String username;
     private String email;
     private String password;
+    private String imageUrl;
 
     @ElementCollection(fetch = FetchType.EAGER)
     private Set<String> roles;
@@ -133,5 +134,13 @@ public class User implements UserDetails {
 
     public void setNotifications(List<Notification> notifications) {
         this.notifications = notifications;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }
