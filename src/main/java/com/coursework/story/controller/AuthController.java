@@ -39,7 +39,8 @@ public class AuthController {
         );
 
         String token = jwtUtil.generateAccessToken(request.getUsername());
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userService.findByUsername(request.getUsername()));
+        User user = userService.findByUsername(request.getUsername());
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
         Cookie cookie = new Cookie("refreshToken", refreshToken.getToken());
         cookie.setHttpOnly(true);
@@ -48,7 +49,7 @@ public class AuthController {
         cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
         response.addCookie(cookie);
 
-        return new AuthResponse(token, request.getUsername());
+        return new AuthResponse(token, user);
     }
 
     @PostMapping("/register")
@@ -66,6 +67,6 @@ public class AuthController {
         RefreshToken refreshToken = refreshTokenService.verifyRefreshToken(refreshTokenValue);
         String accessToken = jwtUtil.generateAccessToken(refreshToken.getUser().getUsername());
 
-        return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken.getUser().getUsername()));
+        return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken.getUser()));
     }
 }
