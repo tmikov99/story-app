@@ -1,5 +1,7 @@
 package com.coursework.story.service;
 
+import com.coursework.story.dto.AuthRequest;
+import com.coursework.story.dto.UserDTO;
 import com.coursework.story.model.User;
 import com.coursework.story.repository.UserRepository;
 import org.springframework.security.core.Authentication;
@@ -7,7 +9,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -16,28 +20,52 @@ import java.util.Set;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final FirebaseStorageService firebaseStorageService;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, FirebaseStorageService firebaseStorageService) {
         this.userRepository = userRepository;
+        this.firebaseStorageService = firebaseStorageService;
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
-    public User registerUser(String username, String email, String password) {
-        if (userRepository.existsByUsername(username)) {
+    public void registerUser(AuthRequest request) {
+        if (userRepository.existsByUsername(request.getUsername())) {
             throw new RuntimeException("Username already exists! Choose a different one.");
         }
 
         User user = new User();
-        user.setUsername(username);
-        user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(password));
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        if (request.getImageUrl() != null) {
+            user.setImageUrl(request.getImageUrl());
+        }
 
         Set<String> roles = new HashSet<>();
         roles.add("USER");
         user.setRoles(roles);
 
-        return userRepository.save(user);
+        userRepository.save(user);
+    }
+
+    public UserDTO getUserResponse() {
+        User user = getAuthenticatedUser().orElseThrow(() -> new RuntimeException("User not found"));
+        return new UserDTO(user.getUsername(), user.getEmail(), user.getImageUrl());
+    }
+
+    public UserDTO setUserPicture(MultipartFile file) {
+        User user = getAuthenticatedUser().orElseThrow(() -> new RuntimeException("User not found"));
+        String imgUrl = null;
+        try {
+            imgUrl = firebaseStorageService.uploadFile(file, "thumbnails/" + user.getId());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        user.setImageUrl(imgUrl);
+
+        User savedUser = userRepository.save(user);
+        return new UserDTO(savedUser);
     }
 
     public User findByUsername(String username) {
