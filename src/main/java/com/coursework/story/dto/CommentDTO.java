@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 public class CommentDTO {
     private Long id;
     private String username;
+    private String imageUrl;
     private String text;
     private LocalDateTime createdAt;
 
@@ -17,6 +18,9 @@ public class CommentDTO {
         this.username = comment.getUser().getUsername();
         this.text = comment.getText();
         this.createdAt = comment.getCreatedAt();
+        if (comment.getUser().getImageUrl() != null) {
+            this.imageUrl = comment.getUser().getImageUrl();
+        }
     }
 
     public Long getId() {
@@ -49,5 +53,13 @@ public class CommentDTO {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }
