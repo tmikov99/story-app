@@ -72,6 +72,20 @@ public class StoryService {
         return new StoryDTO(story, isLiked, isFavorite);
     }
 
+    public List<StoryDTO> getStoriesByUser(String username) {
+        Optional<User> user = getAuthenticatedUser();
+        Set<Long> likedIds = user.isPresent() ? user.get().getLikedIds() : Collections.emptySet();
+        Set<Long> favoriteIds = user.isPresent() ? user.get().getFavoriteIds() : Collections.emptySet();
+        return storyRepository.findAllByUserUsernameOrderByCreatedAt(username).stream()
+                .map(story -> {
+                    StoryDTO dto = new StoryDTO(story);
+                    dto.setLiked(likedIds.contains(story.getId()));
+                    dto.setFavorite(favoriteIds.contains(story.getId()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public void updatePages(Long storyId, List<PageDTO> updatedPages) {
         Optional<Story> optionalStory = storyRepository.findById(storyId);

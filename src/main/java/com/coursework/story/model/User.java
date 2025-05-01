@@ -50,6 +50,14 @@ public class User implements UserDetails {
                 .collect(Collectors.toSet());
     }
 
+    public Set<Long> getLikedIds() {
+        return likedStories.stream().map(Story::getId).collect(Collectors.toSet());
+    }
+
+    public Set<Long> getFavoriteIds() {
+        return favoriteStories.stream().map(Story::getId).collect(Collectors.toSet());
+    }
+
     @Override
     public String getPassword() {
         return password;

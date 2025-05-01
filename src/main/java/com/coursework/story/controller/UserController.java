@@ -20,6 +20,11 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserResponse());
     }
 
+    @GetMapping("/{username}")
+    public ResponseEntity<UserDTO> getUserByUsername(@PathVariable String username) {
+        return ResponseEntity.ok(new UserDTO(userService.findByUsername(username)));
+    }
+
     @PostMapping("/picture")
     public ResponseEntity<UserDTO> setPicture(@RequestParam("file") MultipartFile file) {
         return ResponseEntity.ok(userService.setUserPicture(file));
