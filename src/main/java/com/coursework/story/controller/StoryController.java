@@ -34,6 +34,11 @@ public class StoryController {
         return storyService.getStoryPreviewById(storyId);
     }
 
+    @GetMapping("/user/{userId}")
+    public List<StoryDTO> getStoriesByUser(@PathVariable String username) {
+        return storyService.getStoriesByUser(username);
+    }
+
     @PostMapping("/create")
     public StoryDTO saveStory(@RequestBody Story story) {
         return storyService.saveStory(story);
