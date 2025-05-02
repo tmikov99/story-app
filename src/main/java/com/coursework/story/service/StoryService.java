@@ -3,6 +3,7 @@ package com.coursework.story.service;
 import com.coursework.story.dto.LikeResponse;
 import com.coursework.story.dto.PageDTO;
 import com.coursework.story.dto.StoryDTO;
+import com.coursework.story.model.Genre;
 import com.coursework.story.model.Page;
 import com.coursework.story.model.Story;
 import com.coursework.story.model.User;
@@ -14,7 +15,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,13 +28,16 @@ public class StoryService {
     private final UserRepository userRepository;
     private final PageRepository pageRepository;
     private final NotificationService notificationService;
+    private final FirebaseStorageService firebaseStorageService;
 
     public StoryService(StoryRepository storyRepository, UserRepository userRepository,
-                        PageRepository pageRepository, NotificationService notificationService) {
+                        PageRepository pageRepository, NotificationService notificationService,
+                        FirebaseStorageService firebaseStorageService) {
         this.storyRepository = storyRepository;
         this.userRepository = userRepository;
         this.pageRepository = pageRepository;
         this.notificationService = notificationService;
+        this.firebaseStorageService = firebaseStorageService;
     }
 
     public List<StoryDTO> getStories() {
@@ -142,11 +148,57 @@ public class StoryService {
     }
 
     @Transactional
-    public StoryDTO saveStory(Story story) {
-        User user = getAuthenticatedUser().orElseThrow(() -> new RuntimeException("User not found"));;
+    public StoryDTO saveStory(Story story, MultipartFile coverImg) {
+        User user = getAuthenticatedUser()
+                .orElseThrow(() -> new RuntimeException("User not found"));
         story.setUser(user);
 
         Story savedStory = storyRepository.save(story);
+
+        String coverImageUrl;
+        if (coverImg != null && !coverImg.isEmpty()) {
+            try {
+                coverImageUrl = firebaseStorageService.uploadFile(coverImg, "thumbnails/" + savedStory.getId());
+            } catch (IOException e) {
+                throw new RuntimeException("Image upload failed", e);
+            }
+        } else {
+            coverImageUrl = getDefaultImageForGenre(savedStory.getGenres().getFirst());
+        }
+
+        savedStory.setCoverImageUrl(coverImageUrl);
+        savedStory = storyRepository.save(savedStory);
+
+        return new StoryDTO(savedStory);
+    }
+
+    @Transactional
+    public StoryDTO updateStory(Long storyId, StoryDTO updatedStory, MultipartFile coverImg) {
+        User user = getAuthenticatedUser().orElseThrow(() -> new RuntimeException("User not found"));
+
+        Story existingStory = storyRepository.findById(storyId)
+                .orElseThrow(() -> new RuntimeException("Story not found"));
+
+        if (!existingStory.getUser().equals(user)) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        existingStory.setTitle(updatedStory.getTitle());
+        existingStory.setDescription(updatedStory.getDescription());
+        existingStory.setGenres(updatedStory.getGenres());
+        existingStory.setTags(updatedStory.getTags());
+        existingStory.setStatus(updatedStory.getStatus());
+
+        if (coverImg != null && !coverImg.isEmpty()) {
+            try {
+                String coverImageUrl = firebaseStorageService.uploadFile(coverImg, "thumbnails/" + storyId);
+                existingStory.setCoverImageUrl(coverImageUrl);
+            } catch (IOException e) {
+                throw new RuntimeException("Image upload failed", e);
+            }
+        }
+
+        Story savedStory = storyRepository.save(existingStory);
         return new StoryDTO(savedStory);
     }
 
@@ -233,5 +285,23 @@ public class StoryService {
         }
 
         return Optional.empty();
+    }
+
+    private String getDefaultImageForGenre(Genre genre) {
+        String FIREBASE_DEFAULTS = String.format("https://storage.googleapis.com/%s/defaults/",
+                firebaseStorageService.getBucketName());
+        return switch (genre) {
+            case FANTASY -> FIREBASE_DEFAULTS.concat("fantasy.jpg");
+            case SCIENCE_FICTION -> FIREBASE_DEFAULTS.concat("sci_fi.jpg");
+            case HORROR -> FIREBASE_DEFAULTS.concat("horror.jpg");
+            case MYSTERY -> FIREBASE_DEFAULTS.concat("mystery.jpg");
+            case ADVENTURE -> FIREBASE_DEFAULTS.concat("adventure.jpg");
+            case ROMANCE -> FIREBASE_DEFAULTS.concat("romance.jpg");
+            case COMEDY -> FIREBASE_DEFAULTS.concat("comedy.jpg");
+            case DRAMA -> FIREBASE_DEFAULTS.concat("drama.jpg");
+            case THRILLER -> FIREBASE_DEFAULTS.concat("thriller.jpg");
+            case POST_APOCALYPTIC -> FIREBASE_DEFAULTS.concat("post_apocalyptic.jpg");
+            default -> FIREBASE_DEFAULTS.concat("default.jpg");
+        };
     }
 }

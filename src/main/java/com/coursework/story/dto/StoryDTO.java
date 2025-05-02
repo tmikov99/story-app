@@ -31,6 +31,8 @@ public class StoryDTO {
     private Integer likes;
     private Integer favorites;
 
+    public StoryDTO() {}
+
     public StoryDTO(Story story) {
         id = story.getId();
         title = story.getTitle();

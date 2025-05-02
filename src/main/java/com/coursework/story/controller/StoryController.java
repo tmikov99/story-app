@@ -7,8 +7,10 @@ import com.coursework.story.model.Genre;
 import com.coursework.story.model.Story;
 import com.coursework.story.service.StoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -39,9 +41,17 @@ public class StoryController {
         return storyService.getStoriesByUser(username);
     }
 
-    @PostMapping("/create")
-    public StoryDTO saveStory(@RequestBody Story story) {
-        return storyService.saveStory(story);
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public StoryDTO saveStory(@RequestPart("story") Story story,
+                              @RequestPart(value = "file", required = false) MultipartFile coverImage) {
+        return storyService.saveStory(story, coverImage);
+    }
+
+    @PutMapping("/update/{storyId}")
+    public StoryDTO updateStory(@PathVariable Long storyId,
+                                @RequestPart("story") StoryDTO story,
+                                @RequestPart(value = "file", required = false) MultipartFile coverImage) {
+        return storyService.updateStory(storyId, story, coverImage);
     }
 
     @GetMapping("/genres")
