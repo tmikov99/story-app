@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface PlaythroughRepository extends JpaRepository<Playthrough, Long> {
     Optional<Playthrough> findByUserAndStory(User user, Story story);
     List<Playthrough> findByUser(User user);
+    List<Playthrough> findByUserOrderByLastVisitedDesc(User user);
 }
