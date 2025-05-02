@@ -5,6 +5,8 @@ import com.coursework.story.service.PlaythroughService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/playthrough")
 public class PlaythroughController {
@@ -27,5 +29,10 @@ public class PlaythroughController {
     @GetMapping("/{storyId}")
     public ResponseEntity<PlaythroughDTO> getPlaythrough(@PathVariable Long storyId) {
        return ResponseEntity.ok(playthroughService.getPlaythrough(storyId));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PlaythroughDTO>> getUserPlaythroughs() {
+        return ResponseEntity.ok(playthroughService.getAllPlaythroughsForUser());
     }
 }

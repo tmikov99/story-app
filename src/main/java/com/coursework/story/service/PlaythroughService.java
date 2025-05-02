@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -86,5 +87,15 @@ public class PlaythroughService {
         Playthrough playthrough = playthroughRepository.findByUserAndStory(user, story).orElseThrow(() -> new RuntimeException("Playthrough not found"));
 
         return new PlaythroughDTO(playthrough);
+    }
+
+    public List<PlaythroughDTO> getAllPlaythroughsForUser() {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Playthrough> playthroughs = playthroughRepository.findByUserOrderByLastVisitedDesc(user);
+        return playthroughs.stream().map(PlaythroughDTO::new).toList();
     }
 }

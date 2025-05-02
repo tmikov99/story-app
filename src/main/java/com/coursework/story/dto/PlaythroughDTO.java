@@ -12,13 +12,18 @@ public class PlaythroughDTO {
     private Integer currentPage;
     private List<Integer> path;
     private LocalDateTime lastVisited;
+    private StoryDTO story;
 
     public PlaythroughDTO(Playthrough playthrough) {
         id = playthrough.getId();
-        storyId = playthrough.getStory().getId();
         currentPage = playthrough.getCurrentPage().getPageNumber();
         path = playthrough.getPath();
         lastVisited = playthrough.getLastVisited();
+        story = new StoryDTO();
+        story.setId(playthrough.getStory().getId());
+        story.setTitle(playthrough.getStory().getTitle());
+        story.setPageCount(playthrough.getStory().getPageCount());
+        story.setCoverImageUrl(playthrough.getStory().getCoverImageUrl());
     }
 
     public Long getId() {
@@ -59,5 +64,13 @@ public class PlaythroughDTO {
 
     public void setLastVisited(LocalDateTime lastVisited) {
         this.lastVisited = lastVisited;
+    }
+
+    public StoryDTO getStory() {
+        return story;
+    }
+
+    public void setStory(StoryDTO story) {
+        this.story = story;
     }
 }
