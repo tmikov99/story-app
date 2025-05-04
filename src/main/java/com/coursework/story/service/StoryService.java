@@ -11,6 +11,8 @@ import com.coursework.story.repository.PageRepository;
 import com.coursework.story.repository.StoryRepository;
 import com.coursework.story.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -147,6 +149,36 @@ public class StoryService {
         storyRepository.save(story);
     }
 
+    public org.springframework.data.domain.Page<StoryDTO> searchStories(String query, Pageable pageable) {
+        Optional<User> user = getAuthenticatedUser();
+        Set<Long> likedIds = user.map(User::getLikedIds).orElse(Collections.emptySet());
+        Set<Long> favoriteIds = user.map(User::getFavoriteIds).orElse(Collections.emptySet());
+
+        org.springframework.data.domain.Page<Story> page = storyRepository.searchByTitleOrTagsOrDescription(query, pageable);
+
+        return page.map(story -> {
+            StoryDTO dto = new StoryDTO(story);
+            dto.setLiked(likedIds.contains(story.getId()));
+            dto.setFavorite(favoriteIds.contains(story.getId()));
+            return dto;
+        });
+    }
+
+    public org.springframework.data.domain.Page<StoryDTO> getAllStories(Pageable pageable) {
+        Optional<User> user = getAuthenticatedUser();
+        Set<Long> likedIds = user.map(User::getLikedIds).orElse(Collections.emptySet());
+        Set<Long> favoriteIds = user.map(User::getFavoriteIds).orElse(Collections.emptySet());
+
+        org.springframework.data.domain.Page<Story> stories = storyRepository.findAll(pageable);
+
+        return stories.map(story -> {
+            StoryDTO dto = new StoryDTO(story);
+            dto.setLiked(likedIds.contains(story.getId()));
+            dto.setFavorite(favoriteIds.contains(story.getId()));
+            return dto;
+        });
+    }
+
     @Transactional
     public StoryDTO saveStory(Story story, MultipartFile coverImg) {
         User user = getAuthenticatedUser()
@@ -260,20 +292,30 @@ public class StoryService {
         return response;
     }
 
-    public List<StoryDTO> getLikedStories() {
+    public org.springframework.data.domain.Page<StoryDTO> getLikedStories(Pageable pageable) {
         User user = getAuthenticatedUser().orElseThrow(() -> new RuntimeException("User not found"));
-        return user.getLikedStories()
-                .stream()
+        List<Story> likedStories = new ArrayList<>(user.getLikedStories());
+
+        List<StoryDTO> dtoList = likedStories.stream()
+                .skip((long) pageable.getPageNumber() * pageable.getPageSize())
+                .limit(pageable.getPageSize())
                 .map(StoryDTO::new)
                 .toList();
+
+        return new PageImpl<>(dtoList, pageable, likedStories.size());
     }
 
-    public List<StoryDTO> getFavoriteStories() {
+    public org.springframework.data.domain.Page<StoryDTO> getFavoriteStories(Pageable pageable) {
         User user = getAuthenticatedUser().orElseThrow(() -> new RuntimeException("User not found"));
-        return user.getFavoriteStories()
-                .stream()
+        List<Story> favoriteStories = new ArrayList<>(user.getFavoriteStories());
+
+        List<StoryDTO> dtoList = favoriteStories.stream()
+                .skip((long) pageable.getPageNumber() * pageable.getPageSize())
+                .limit(pageable.getPageSize())
                 .map(StoryDTO::new)
                 .toList();
+
+        return new PageImpl<>(dtoList, pageable, favoriteStories.size());
     }
 
     private Optional<User> getAuthenticatedUser() {

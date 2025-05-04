@@ -21,7 +21,7 @@ public class Playthrough {
     @JoinColumn(name = "story_id", nullable = false)
     private Story story;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "current_page_id")
     private Page currentPage;
 
