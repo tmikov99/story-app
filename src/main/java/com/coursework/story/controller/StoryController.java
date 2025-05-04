@@ -2,11 +2,14 @@ package com.coursework.story.controller;
 
 import com.coursework.story.dto.LikeResponse;
 import com.coursework.story.dto.PageDTO;
+import com.coursework.story.dto.PaginatedResponse;
 import com.coursework.story.dto.StoryDTO;
 import com.coursework.story.model.Genre;
 import com.coursework.story.model.Story;
 import com.coursework.story.service.StoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +25,14 @@ public class StoryController {
     StoryService storyService;
 
     @GetMapping
-    public List<StoryDTO> getStories() {
-        return storyService.getStories();
+    public PaginatedResponse<StoryDTO> searchStories(
+            @RequestParam(value = "q", required = false) String query,
+            Pageable pageable) {
+        Page<StoryDTO> result = (query != null && !query.isBlank())
+                ? storyService.searchStories(query, pageable)
+                : storyService.getAllStories(pageable);
+
+        return PaginatedResponse.fromPage(result);
     }
 
     @GetMapping("/{storyId}")
@@ -75,12 +84,14 @@ public class StoryController {
     }
 
     @GetMapping("/liked")
-    public List<StoryDTO> getLikedStories() {
-        return storyService.getLikedStories();
+    public PaginatedResponse<StoryDTO> getLikedStories(Pageable pageable) {
+        Page<StoryDTO> page = storyService.getLikedStories(pageable);
+        return PaginatedResponse.fromPage(page);
     }
 
     @GetMapping("/favorite")
-    public List<StoryDTO> getFavoriteStories() {
-        return storyService.getFavoriteStories();
+    public PaginatedResponse<StoryDTO> getFavoriteStories(Pageable pageable) {
+        Page<StoryDTO> page = storyService.getFavoriteStories(pageable);
+        return PaginatedResponse.fromPage(page);
     }
 }
