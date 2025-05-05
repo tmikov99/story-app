@@ -53,6 +53,12 @@ public class StoryController {
         return PaginatedResponse.fromPage(page);
     }
 
+    @GetMapping("/mine")
+    public PaginatedResponse<StoryDTO> getUserStories(Pageable pageable) {
+        Page<StoryDTO> page = storyService.getUserStories(pageable);
+        return PaginatedResponse.fromPage(page);
+    }
+
     @GetMapping("/{storyId}")
     public StoryDTO getStoryById(@PathVariable Long storyId) {
         return storyService.getStoryById(storyId);

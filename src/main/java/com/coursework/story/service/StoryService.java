@@ -356,6 +356,20 @@ public class StoryService {
         return mapStoriesToDTOs(page, likedIds, favoriteIds);
     }
 
+    public org.springframework.data.domain.Page<StoryDTO> getUserStories(Pageable pageable) {
+        User user = getAuthenticatedUser()
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Pageable sortedPageable = applyDefaultSortIfMissing(pageable);
+
+        org.springframework.data.domain.Page<Story> page = storyRepository.findByUserId(user.getId(), sortedPageable);
+
+        Set<Long> likedIds = user.getLikedIds();
+        Set<Long> favoriteIds = user.getFavoriteIds();
+
+        return mapStoriesToDTOs(page, likedIds, favoriteIds);
+    }
+
     private Optional<User> getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
