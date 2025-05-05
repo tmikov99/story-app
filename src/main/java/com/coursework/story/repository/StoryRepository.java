@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface StoryRepository extends JpaRepository<Story, Long> {
@@ -30,4 +31,12 @@ public interface StoryRepository extends JpaRepository<Story, Long> {
     @Query("SELECT s FROM stories s JOIN s.favoriteByUsers u WHERE u.id = :userId")
     Page<Story> findStoriesFavoriteByUserId(@Param("userId") Long userId, Pageable pageable);
 
+    @Query("""
+            SELECT s FROM stories s
+            WHERE s.createdAt > :cutoff
+            ORDER BY 
+              (s.likes * 2 + s.favorites * 3 + s.reads * 1) / POWER(TIMESTAMPDIFF(HOUR, s.createdAt, CURRENT_TIMESTAMP) + 2, 1.5)
+            DESC
+            """)
+    Page<Story> findTrendingStories(@Param("cutoff") LocalDateTime cutoff, Pageable pageable);
 }

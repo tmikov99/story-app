@@ -47,6 +47,12 @@ public class StoryController {
         return PaginatedResponse.fromPage(page);
     }
 
+    @GetMapping("/trending")
+    public PaginatedResponse<StoryDTO> getTrendingStories(Pageable pageable) {
+        Page<StoryDTO> page = storyService.getTrendingStories(pageable);
+        return PaginatedResponse.fromPage(page);
+    }
+
     @GetMapping("/{storyId}")
     public StoryDTO getStoryById(@PathVariable Long storyId) {
         return storyService.getStoryById(storyId);
