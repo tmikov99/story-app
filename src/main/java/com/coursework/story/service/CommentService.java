@@ -70,7 +70,7 @@ public class CommentService {
     public Page<CommentDTO> getUserComments(Pageable pageable) {
         User user = getAuthenticatedUser();
         Page<Comment> comments = commentRepository.findByUserId(user.getId(), pageable);
-        return comments.map(CommentDTO::new);
+        return comments.map(comment -> new CommentDTO(comment, comment.getStory()));
     }
 
     private User getAuthenticatedUser() {

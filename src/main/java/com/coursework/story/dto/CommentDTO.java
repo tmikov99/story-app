@@ -1,6 +1,7 @@
 package com.coursework.story.dto;
 
 import com.coursework.story.model.Comment;
+import com.coursework.story.model.Story;
 
 import java.time.LocalDateTime;
 
@@ -10,6 +11,7 @@ public class CommentDTO {
     private String imageUrl;
     private String text;
     private LocalDateTime createdAt;
+    private StoryDTO story;
 
     public CommentDTO () {}
 
@@ -21,6 +23,20 @@ public class CommentDTO {
         if (comment.getUser().getImageUrl() != null) {
             this.imageUrl = comment.getUser().getImageUrl();
         }
+    }
+
+    public CommentDTO (Comment comment, Story story) {
+        this.id = comment.getId();
+        this.username = comment.getUser().getUsername();
+        this.text = comment.getText();
+        this.createdAt = comment.getCreatedAt();
+        if (comment.getUser().getImageUrl() != null) {
+            this.imageUrl = comment.getUser().getImageUrl();
+        }
+        this.story = new StoryDTO();
+        this.story.setId(story.getId());
+        this.story.setTitle(story.getTitle());
+        this.story.setCoverImageUrl(story.getCoverImageUrl());
     }
 
     public Long getId() {
@@ -61,5 +77,13 @@ public class CommentDTO {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public StoryDTO getStory() {
+        return story;
+    }
+
+    public void setStory(StoryDTO story) {
+        this.story = story;
     }
 }
