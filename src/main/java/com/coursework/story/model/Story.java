@@ -44,6 +44,12 @@ public class Story {
     @Enumerated(EnumType.STRING)
     private StoryStatus status;
 
+    @ManyToMany(mappedBy = "likedStories")
+    private Set<User> likedByUsers;
+
+    @ManyToMany(mappedBy = "favoriteStories")
+    private Set<User> favoriteByUsers;
+
     private int likes;
 
     private int favorites;
@@ -194,5 +200,21 @@ public class Story {
 
     public void setFavorites(int favorites) {
         this.favorites = favorites;
+    }
+
+    public Set<User> getLikedByUsers() {
+        return likedByUsers;
+    }
+
+    public void setLikedByUsers(Set<User> likedByUsers) {
+        this.likedByUsers = likedByUsers;
+    }
+
+    public Set<User> getFavoriteByUsers() {
+        return favoriteByUsers;
+    }
+
+    public void setFavoriteByUsers(Set<User> favoriteByUsers) {
+        this.favoriteByUsers = favoriteByUsers;
     }
 }

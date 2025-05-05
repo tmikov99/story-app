@@ -11,8 +11,9 @@ import com.coursework.story.repository.PageRepository;
 import com.coursework.story.repository.StoryRepository;
 import com.coursework.story.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -150,28 +151,38 @@ public class StoryService {
     }
 
     public org.springframework.data.domain.Page<StoryDTO> searchStories(String query, Pageable pageable) {
+        Pageable sortedPageable = applyDefaultSortIfMissing(pageable);
+
         Optional<User> user = getAuthenticatedUser();
         Set<Long> likedIds = user.map(User::getLikedIds).orElse(Collections.emptySet());
         Set<Long> favoriteIds = user.map(User::getFavoriteIds).orElse(Collections.emptySet());
 
-        org.springframework.data.domain.Page<Story> page = storyRepository.searchByTitleOrTagsOrDescription(query, pageable);
+        org.springframework.data.domain.Page<Story> page = storyRepository.searchByTitleOrTagsOrDescription(query, sortedPageable);
 
-        return page.map(story -> {
-            StoryDTO dto = new StoryDTO(story);
-            dto.setLiked(likedIds.contains(story.getId()));
-            dto.setFavorite(favoriteIds.contains(story.getId()));
-            return dto;
-        });
+        return mapStoriesToDTOs(page, likedIds, favoriteIds);
     }
 
     public org.springframework.data.domain.Page<StoryDTO> getAllStories(Pageable pageable) {
+        Pageable sortedPageable = applyDefaultSortIfMissing(pageable);
+
+        org.springframework.data.domain.Page<Story> page = storyRepository.findAll(sortedPageable);
+
         Optional<User> user = getAuthenticatedUser();
         Set<Long> likedIds = user.map(User::getLikedIds).orElse(Collections.emptySet());
         Set<Long> favoriteIds = user.map(User::getFavoriteIds).orElse(Collections.emptySet());
 
-        org.springframework.data.domain.Page<Story> stories = storyRepository.findAll(pageable);
+        return mapStoriesToDTOs(page, likedIds, favoriteIds);
+    }
 
-        return stories.map(story -> {
+    private Pageable applyDefaultSortIfMissing(Pageable pageable) {
+        if (pageable.getSort().isSorted()) return pageable;
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+    }
+
+    private org.springframework.data.domain.Page<StoryDTO> mapStoriesToDTOs(
+            org.springframework.data.domain.Page<Story> page, Set<Long> likedIds, Set<Long> favoriteIds) {
+        return page.map(story -> {
             StoryDTO dto = new StoryDTO(story);
             dto.setLiked(likedIds.contains(story.getId()));
             dto.setFavorite(favoriteIds.contains(story.getId()));
@@ -294,28 +305,26 @@ public class StoryService {
 
     public org.springframework.data.domain.Page<StoryDTO> getLikedStories(Pageable pageable) {
         User user = getAuthenticatedUser().orElseThrow(() -> new RuntimeException("User not found"));
-        List<Story> likedStories = new ArrayList<>(user.getLikedStories());
+        Pageable sortedPageable = applyDefaultSortIfMissing(pageable);
 
-        List<StoryDTO> dtoList = likedStories.stream()
-                .skip((long) pageable.getPageNumber() * pageable.getPageSize())
-                .limit(pageable.getPageSize())
-                .map(StoryDTO::new)
-                .toList();
+        org.springframework.data.domain.Page<Story> page = storyRepository.findStoriesLikedByUserId(user.getId(), sortedPageable);
 
-        return new PageImpl<>(dtoList, pageable, likedStories.size());
+        Set<Long> likedIds = user.getLikedIds();
+        Set<Long> favoriteIds = user.getFavoriteIds();
+
+        return mapStoriesToDTOs(page, likedIds, favoriteIds);
     }
 
     public org.springframework.data.domain.Page<StoryDTO> getFavoriteStories(Pageable pageable) {
         User user = getAuthenticatedUser().orElseThrow(() -> new RuntimeException("User not found"));
-        List<Story> favoriteStories = new ArrayList<>(user.getFavoriteStories());
+        Pageable sortedPageable = applyDefaultSortIfMissing(pageable);
 
-        List<StoryDTO> dtoList = favoriteStories.stream()
-                .skip((long) pageable.getPageNumber() * pageable.getPageSize())
-                .limit(pageable.getPageSize())
-                .map(StoryDTO::new)
-                .toList();
+        org.springframework.data.domain.Page<Story> page = storyRepository.findStoriesFavoriteByUserId(user.getId(), sortedPageable);
 
-        return new PageImpl<>(dtoList, pageable, favoriteStories.size());
+        Set<Long> likedIds = user.getLikedIds();
+        Set<Long> favoriteIds = user.getFavoriteIds();
+
+        return mapStoriesToDTOs(page, likedIds, favoriteIds);
     }
 
     private Optional<User> getAuthenticatedUser() {

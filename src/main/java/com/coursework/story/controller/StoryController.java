@@ -35,6 +35,18 @@ public class StoryController {
         return PaginatedResponse.fromPage(result);
     }
 
+    @GetMapping("/liked")
+    public PaginatedResponse<StoryDTO> getLikedStories(Pageable pageable) {
+        Page<StoryDTO> page = storyService.getLikedStories(pageable);
+        return PaginatedResponse.fromPage(page);
+    }
+
+    @GetMapping("/favorite")
+    public PaginatedResponse<StoryDTO> getFavoriteStories(Pageable pageable) {
+        Page<StoryDTO> page = storyService.getFavoriteStories(pageable);
+        return PaginatedResponse.fromPage(page);
+    }
+
     @GetMapping("/{storyId}")
     public StoryDTO getStoryById(@PathVariable Long storyId) {
         return storyService.getStoryById(storyId);
@@ -81,17 +93,5 @@ public class StoryController {
     @PostMapping("/favorite/{storyId}")
     public ResponseEntity<Boolean> favoriteStory(@PathVariable Long storyId) {
         return ResponseEntity.ok(storyService.toggleFavoriteStory(storyId));
-    }
-
-    @GetMapping("/liked")
-    public PaginatedResponse<StoryDTO> getLikedStories(Pageable pageable) {
-        Page<StoryDTO> page = storyService.getLikedStories(pageable);
-        return PaginatedResponse.fromPage(page);
-    }
-
-    @GetMapping("/favorite")
-    public PaginatedResponse<StoryDTO> getFavoriteStories(Pageable pageable) {
-        Page<StoryDTO> page = storyService.getFavoriteStories(pageable);
-        return PaginatedResponse.fromPage(page);
     }
 }
