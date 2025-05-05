@@ -6,8 +6,6 @@ import com.coursework.story.model.Story;
 import com.coursework.story.model.StoryStatus;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -31,6 +29,8 @@ public class StoryDTO {
     private Integer likes;
     private Integer favorites;
 
+    private Integer reads;
+
     public StoryDTO() {}
 
     public StoryDTO(Story story) {
@@ -48,6 +48,7 @@ public class StoryDTO {
         updatedAt = story.getUpdatedAt();
         likes = story.getLikes();
         favorites = story.getFavorites();
+        reads = story.getReads();
     }
 
     public StoryDTO(Story story, boolean isLiked, boolean isFavorite) {
@@ -65,6 +66,7 @@ public class StoryDTO {
         updatedAt = story.getUpdatedAt();
         likes = story.getLikes();
         favorites = story.getFavorites();
+        reads = story.getReads();
         this.isLiked = isLiked;
         this.isFavorite = isFavorite;
     }
@@ -83,6 +85,7 @@ public class StoryDTO {
         updatedAt = story.getUpdatedAt();
         likes = story.getLikes();
         favorites = story.getFavorites();
+        reads = story.getReads();
         this.pages = pages.stream().map(PageDTO::new).collect(Collectors.toList());
     }
 
@@ -220,5 +223,13 @@ public class StoryDTO {
 
     public void setFavorites(Integer favorites) {
         this.favorites = favorites;
+    }
+
+    public Integer getReads() {
+        return reads;
+    }
+
+    public void setReads(Integer reads) {
+        this.reads = reads;
     }
 }
