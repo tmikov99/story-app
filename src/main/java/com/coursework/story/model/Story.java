@@ -54,6 +54,8 @@ public class Story {
 
     private int favorites;
 
+    private int reads;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -92,6 +94,10 @@ public class Story {
 
     public void decrementFavorites() {
         this.favorites = Math.max(0, this.favorites - 1);
+    }
+
+    public void incrementReads() {
+        this.reads++;
     }
 
     public String getTitle() {
@@ -200,6 +206,14 @@ public class Story {
 
     public void setFavorites(int favorites) {
         this.favorites = favorites;
+    }
+
+    public int getReads() {
+        return reads;
+    }
+
+    public void setReads(int reads) {
+        this.reads = reads;
     }
 
     public Set<User> getLikedByUsers() {

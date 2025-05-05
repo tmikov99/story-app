@@ -9,6 +9,7 @@ import com.coursework.story.repository.PageRepository;
 import com.coursework.story.repository.PlaythroughRepository;
 import com.coursework.story.repository.StoryRepository;
 import com.coursework.story.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class PlaythroughService {
         this.userRepository = userRepository;
     }
 
+    @Transactional
     public PlaythroughDTO startPlaythrough(Long storyId) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = userDetails.getUsername();
@@ -51,6 +53,9 @@ public class PlaythroughService {
         playthrough.setCompleted(false);
 
         Playthrough savedPlaythrough = playthroughRepository.save(playthrough);
+
+        story.incrementReads();
+        storyRepository.save(story);
 
         return new PlaythroughDTO(savedPlaythrough);
     }
