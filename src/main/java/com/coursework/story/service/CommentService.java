@@ -8,6 +8,8 @@ import com.coursework.story.repository.CommentRepository;
 import com.coursework.story.repository.StoryRepository;
 import com.coursework.story.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -63,5 +65,19 @@ public class CommentService {
         return commentRepository.findByStoryIdOrderByCreatedAt(storyId).stream()
                 .map(CommentDTO::new)
                 .collect(Collectors.toList());
+    }
+
+    public Page<CommentDTO> getUserComments(Pageable pageable) {
+        User user = getAuthenticatedUser();
+        Page<Comment> comments = commentRepository.findByUserId(user.getId(), pageable);
+        return comments.map(CommentDTO::new);
+    }
+
+    private User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }
