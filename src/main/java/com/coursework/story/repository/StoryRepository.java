@@ -23,4 +23,11 @@ public interface StoryRepository extends JpaRepository<Story, Long> {
             "OR LOWER(s.description) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR EXISTS (SELECT t FROM s.tags t WHERE LOWER(t) LIKE LOWER(CONCAT('%', :query, '%')))")
     Page<Story> searchByTitleOrTagsOrDescription(@Param("query") String query, Pageable pageable);
+
+    @Query("SELECT s FROM stories  s JOIN s.likedByUsers u WHERE u.id = :userId")
+    Page<Story> findStoriesLikedByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("SELECT s FROM stories s JOIN s.favoriteByUsers u WHERE u.id = :userId")
+    Page<Story> findStoriesFavoriteByUserId(@Param("userId") Long userId, Pageable pageable);
+
 }

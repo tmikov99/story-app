@@ -29,14 +29,16 @@ public class User implements UserDetails {
     @ManyToMany
     @JoinTable(
             name = "user_likes",
-            joinColumns = @JoinColumn(name = "user_id")
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "story_id")
     )
     private Set<Story> likedStories;
 
     @ManyToMany
     @JoinTable(
             name = "user_favorites",
-            joinColumns = @JoinColumn(name = "user_id")
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "story_id")
     )
     private Set<Story> favoriteStories;
 
