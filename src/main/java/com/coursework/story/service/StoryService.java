@@ -11,6 +11,7 @@ import com.coursework.story.repository.PageRepository;
 import com.coursework.story.repository.StoryRepository;
 import com.coursework.story.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -172,6 +174,33 @@ public class StoryService {
         Set<Long> favoriteIds = user.map(User::getFavoriteIds).orElse(Collections.emptySet());
 
         return mapStoriesToDTOs(page, likedIds, favoriteIds);
+    }
+
+//    @Cacheable("trendingStories")
+    public List<Story> getTrendingStoriesRaw() {
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(7);
+        Pageable limit = PageRequest.of(0, 100); // Cache top 100, for example
+        return storyRepository.findTrendingStories(cutoff, limit).getContent();
+    }
+
+    public org.springframework.data.domain.Page<StoryDTO> getTrendingStories(Pageable pageable) {
+        List<Story> cachedTrending = getTrendingStoriesRaw();
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), cachedTrending.size());
+        List<Story> paged = cachedTrending.subList(start, end);
+
+        Optional<User> user = getAuthenticatedUser();
+        Set<Long> likedIds = user.map(User::getLikedIds).orElse(Collections.emptySet());
+        Set<Long> favoriteIds = user.map(User::getFavoriteIds).orElse(Collections.emptySet());
+
+        return new PageImpl<>(paged.stream()
+                .map(s -> {
+                    StoryDTO dto = new StoryDTO(s);
+                    dto.setLiked(likedIds.contains(s.getId()));
+                    dto.setFavorite(favoriteIds.contains(s.getId()));
+                    return dto;
+                }).toList(), pageable, cachedTrending.size());
     }
 
     private Pageable applyDefaultSortIfMissing(Pageable pageable) {
