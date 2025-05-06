@@ -3,6 +3,7 @@ package com.coursework.story.service;
 import com.coursework.story.dto.PageDTO;
 import com.coursework.story.model.Page;
 import com.coursework.story.model.Story;
+import com.coursework.story.model.StoryStatus;
 import com.coursework.story.model.User;
 import com.coursework.story.repository.PageRepository;
 import com.coursework.story.repository.StoryRepository;
@@ -23,10 +24,14 @@ public class PageService {
     private final UserRepository userRepository;
     private final StoryRepository storyRepository;
 
-    public PageService(PageRepository pageRepository, UserRepository userRepository, StoryRepository storyRepository) {
+    private final DraftService draftService;
+
+    public PageService(PageRepository pageRepository, UserRepository userRepository,
+                       StoryRepository storyRepository, DraftService draftService) {
         this.pageRepository = pageRepository;
         this.userRepository = userRepository;
         this.storyRepository = storyRepository;
+        this.draftService = draftService;
     }
 
     public Page getPageById(Long pageId) {
@@ -63,11 +68,16 @@ public class PageService {
 
         Story story = page.getStory();
         User author = story.getUser();
-
         User currentUser = getAuthenticatedUser();
 
         if (!author.getId().equals(currentUser.getId())) {
             throw new RuntimeException("You are not allowed to edit this page");
+        }
+
+        if (story.getStatus() == StoryStatus.PUBLISHED) {
+            story = draftService.ensureDraftExists(story);
+            page = pageRepository.findByStoryIdAndPageNumber(story.getId(), page.getPageNumber())
+                    .orElseThrow(() -> new RuntimeException("Page not found in draft"));
         }
 
         page.setTitle(newPage.getTitle());
@@ -84,6 +94,16 @@ public class PageService {
         Story story = storyRepository.findById(newPage.getStoryId())
                 .orElseThrow(() -> new EntityNotFoundException("Story not found"));
 
+        User currentUser = getAuthenticatedUser();
+        if (!story.getUser().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("You are not allowed to add a page to this story");
+        }
+
+        if (story.getStatus() == StoryStatus.PUBLISHED) {
+            story = draftService.ensureDraftExists(story);
+            newPage.setStoryId(story.getId());
+        }
+
         boolean pageExists = pageRepository.existsByStoryIdAndPageNumber(newPage.getStoryId(), newPage.getPageNumber());
         if (pageExists) {
             throw new IllegalArgumentException("Page number already exists for this story");
@@ -99,7 +119,6 @@ public class PageService {
         page.setStory(story);
 
         Page savedPage = pageRepository.save(page);
-
         return new PageDTO(savedPage);
     }
 
@@ -115,6 +134,12 @@ public class PageService {
 
         if (!author.getId().equals(currentUser.getId())) {
             throw new RuntimeException("You are not allowed to delete this page");
+        }
+
+        if (story.getStatus() == StoryStatus.PUBLISHED) {
+            story = draftService.ensureDraftExists(story);
+            page = pageRepository.findByStoryIdAndPageNumber(story.getId(), page.getPageNumber())
+                    .orElseThrow(() -> new RuntimeException("Page not found in draft"));
         }
 
         pageRepository.delete(page);

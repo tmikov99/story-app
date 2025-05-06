@@ -22,13 +22,14 @@ public class StoryDTO {
     private Integer pageCount;
     private Integer startPage;
     private StoryStatus status;
+    private Integer version;
+    private Long originalStoryId;
     private Boolean isLiked;
     private Boolean isFavorite;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Integer likes;
     private Integer favorites;
-
     private Integer reads;
 
     public StoryDTO() {}
@@ -44,6 +45,10 @@ public class StoryDTO {
         pageCount = story.getPageCount();
         startPage = 1;
         status = story.getStatus();
+        version = story.getVersion();
+        originalStoryId = story.getStatus() == StoryStatus.DRAFT && story.getOriginalStory() != null
+                ? story.getOriginalStory().getId()
+                : null;
         createdAt = story.getCreatedAt();
         updatedAt = story.getUpdatedAt();
         likes = story.getLikes();
@@ -62,6 +67,10 @@ public class StoryDTO {
         pageCount = story.getPageCount();
         startPage = 1;
         status = story.getStatus();
+        version = story.getVersion();
+        originalStoryId = story.getStatus() == StoryStatus.DRAFT && story.getOriginalStory() != null
+                ? story.getOriginalStory().getId()
+                : null;
         createdAt = story.getCreatedAt();
         updatedAt = story.getUpdatedAt();
         likes = story.getLikes();
@@ -81,6 +90,10 @@ public class StoryDTO {
         description = story.getDescription();
         pageCount = story.getPageCount();
         status = story.getStatus();
+        version = story.getVersion();
+        originalStoryId = story.getStatus() == StoryStatus.DRAFT && story.getOriginalStory() != null
+                ? story.getOriginalStory().getId()
+                : null;
         createdAt = story.getCreatedAt();
         updatedAt = story.getUpdatedAt();
         likes = story.getLikes();
@@ -175,6 +188,22 @@ public class StoryDTO {
 
     public void setStatus(StoryStatus status) {
         this.status = status;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
+    public Long getOriginalStoryId() {
+        return originalStoryId;
+    }
+
+    public void setOriginalStoryId(Long originalStoryId) {
+        this.originalStoryId = originalStoryId;
     }
 
     public LocalDateTime getCreatedAt() {

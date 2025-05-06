@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface StoryRepository extends JpaRepository<Story, Long> {
     List<Story> findAllByUserUsernameOrderByCreatedAt(String username);
@@ -41,4 +42,6 @@ public interface StoryRepository extends JpaRepository<Story, Long> {
     Page<Story> findTrendingStories(@Param("cutoff") LocalDateTime cutoff, Pageable pageable);
 
     Page<Story> findByUserId(Long userId, Pageable pageable);
+
+    Optional<Story> findByOriginalStoryId (Long storyId);
 }
