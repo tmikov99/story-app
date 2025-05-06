@@ -87,6 +87,12 @@ public class StoryController {
         return storyService.updateStory(storyId, story, coverImage);
     }
 
+    @PutMapping("/publish/{storyId}")
+    public ResponseEntity<StoryDTO> publishStory(@PathVariable Long storyId) {
+        StoryDTO publishedStory = storyService.publishStory(storyId);
+        return ResponseEntity.ok(publishedStory);
+    }
+
     @GetMapping("/genres")
     public List<Genre> getGenres() {
         return List.of(Genre.values());

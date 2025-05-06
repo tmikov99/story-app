@@ -42,7 +42,13 @@ public class Story {
     private Integer pageCount;
 
     @Enumerated(EnumType.STRING)
-    private StoryStatus status;
+    private StoryStatus status = StoryStatus.DRAFT;
+
+    private int version = 1;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "original_story_id")
+    private Story originalStory;
 
     @ManyToMany(mappedBy = "likedStories")
     private Set<User> likedByUsers;
@@ -182,6 +188,22 @@ public class Story {
 
     public void setStatus(StoryStatus status) {
         this.status = status;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
+    public Story getOriginalStory() {
+        return originalStory;
+    }
+
+    public void setOriginalStory(Story originalStory) {
+        this.originalStory = originalStory;
     }
 
     public LocalDateTime getCreatedAt() {

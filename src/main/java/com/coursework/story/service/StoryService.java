@@ -3,10 +3,7 @@ package com.coursework.story.service;
 import com.coursework.story.dto.LikeResponse;
 import com.coursework.story.dto.PageDTO;
 import com.coursework.story.dto.StoryDTO;
-import com.coursework.story.model.Genre;
-import com.coursework.story.model.Page;
-import com.coursework.story.model.Story;
-import com.coursework.story.model.User;
+import com.coursework.story.model.*;
 import com.coursework.story.repository.PageRepository;
 import com.coursework.story.repository.StoryRepository;
 import com.coursework.story.repository.UserRepository;
@@ -34,15 +31,17 @@ public class StoryService {
     private final PageRepository pageRepository;
     private final NotificationService notificationService;
     private final FirebaseStorageService firebaseStorageService;
+    private final DraftService draftService;
 
     public StoryService(StoryRepository storyRepository, UserRepository userRepository,
                         PageRepository pageRepository, NotificationService notificationService,
-                        FirebaseStorageService firebaseStorageService) {
+                        FirebaseStorageService firebaseStorageService, DraftService draftService) {
         this.storyRepository = storyRepository;
         this.userRepository = userRepository;
         this.pageRepository = pageRepository;
         this.notificationService = notificationService;
         this.firebaseStorageService = firebaseStorageService;
+        this.draftService = draftService;
     }
 
     public List<StoryDTO> getStories() {
@@ -255,15 +254,18 @@ public class StoryService {
             throw new RuntimeException("Unauthorized");
         }
 
+        if (existingStory.getStatus() == StoryStatus.PUBLISHED) {
+            existingStory = draftService.ensureDraftExists(existingStory);
+        }
+
         existingStory.setTitle(updatedStory.getTitle());
         existingStory.setDescription(updatedStory.getDescription());
         existingStory.setGenres(updatedStory.getGenres());
         existingStory.setTags(updatedStory.getTags());
-        existingStory.setStatus(updatedStory.getStatus());
 
         if (coverImg != null && !coverImg.isEmpty()) {
             try {
-                String coverImageUrl = firebaseStorageService.uploadFile(coverImg, "thumbnails/" + storyId);
+                String coverImageUrl = firebaseStorageService.uploadFile(coverImg, "thumbnails/" + existingStory.getId());
                 existingStory.setCoverImageUrl(coverImageUrl);
             } catch (IOException e) {
                 throw new RuntimeException("Image upload failed", e);
@@ -272,6 +274,30 @@ public class StoryService {
 
         Story savedStory = storyRepository.save(existingStory);
         return new StoryDTO(savedStory);
+    }
+
+    @Transactional
+    public StoryDTO publishStory(Long storyId) {
+        User user = getAuthenticatedUser().orElseThrow(() -> new RuntimeException("User not found"));
+
+        Story story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new RuntimeException("Story not found"));
+
+        if (!story.getUser().equals(user)) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        if (story.getStatus() == StoryStatus.PUBLISHED) {
+            throw new RuntimeException("Story already published");
+        }
+
+        story.setOriginalStory(null);
+        story.setStatus(StoryStatus.PUBLISHED);
+
+        story.touch();
+        Story published = storyRepository.save(story);
+
+        return new StoryDTO(published);
     }
 
     @Transactional
