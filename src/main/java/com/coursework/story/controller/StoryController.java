@@ -93,6 +93,12 @@ public class StoryController {
         return ResponseEntity.ok(publishedStory);
     }
 
+    @PutMapping("/archive/{storyId}")
+    public ResponseEntity<StoryDTO> archive(@PathVariable Long storyId) {
+        StoryDTO archivedStory = storyService.archiveStory(storyId);
+        return ResponseEntity.ok(archivedStory);
+    }
+
     @GetMapping("/genres")
     public List<Genre> getGenres() {
         return List.of(Genre.values());
