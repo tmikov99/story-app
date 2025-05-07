@@ -9,7 +9,9 @@ import com.coursework.story.model.Story;
 import com.coursework.story.service.StoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -72,6 +74,22 @@ public class StoryController {
     @GetMapping("/user/{userId}")
     public List<StoryDTO> getStoriesByUser(@PathVariable String username) {
         return storyService.getStoriesByUser(username);
+    }
+
+    @GetMapping("/user/{username}/stories")
+    public PaginatedResponse<StoryDTO> getUserStories(
+            @PathVariable String username,
+            @RequestParam(defaultValue = "latest") String sort,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = switch (sort) {
+            case "oldest" -> PageRequest.of(page, size, Sort.by("createdAt").ascending());
+            case "most_read" -> PageRequest.of(page, size, Sort.by("reads").descending());
+            default -> PageRequest.of(page, size, Sort.by("createdAt").descending());
+        };
+
+        return storyService.getPublishedStoriesByUser(username, pageable);
     }
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
