@@ -2,6 +2,7 @@ package com.coursework.story.service;
 
 import com.coursework.story.dto.LikeResponse;
 import com.coursework.story.dto.PageDTO;
+import com.coursework.story.dto.PaginatedResponse;
 import com.coursework.story.dto.StoryDTO;
 import com.coursework.story.model.*;
 import com.coursework.story.repository.PageRepository;
@@ -208,6 +209,16 @@ public class StoryService {
                     dto.setFavorite(favoriteIds.contains(s.getId()));
                     return dto;
                 }).toList(), pageable, cachedTrending.size());
+    }
+
+    public PaginatedResponse<StoryDTO> getPublishedStoriesByUser(String username, Pageable pageable) {
+        Optional<User> currentUser = getAuthenticatedUser();
+        Set<Long> likedIds = currentUser.map(User::getLikedIds).orElse(Collections.emptySet());
+        Set<Long> favoriteIds = currentUser.map(User::getFavoriteIds).orElse(Collections.emptySet());
+
+        org.springframework.data.domain.Page<Story> stories = storyRepository.findByUserUsernameAndStatus(username, StoryStatus.PUBLISHED, pageable);
+
+        return PaginatedResponse.fromPage(mapStoriesToDTOs(stories, likedIds, favoriteIds));
     }
 
     private Pageable applyDefaultSortIfMissing(Pageable pageable) {

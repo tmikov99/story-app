@@ -6,6 +6,7 @@ public class UserDTO {
     private String username;
     private String email;
     private String imageUrl;
+    private Integer storyCount;
 
     public UserDTO(User user) {
         username = user.getUsername();
@@ -40,5 +41,13 @@ public class UserDTO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Integer getStoryCount() {
+        return storyCount;
+    }
+
+    public void setStoryCount(Integer storyCount) {
+        this.storyCount = storyCount;
     }
 }

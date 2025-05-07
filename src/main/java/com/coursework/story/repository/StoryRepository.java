@@ -40,6 +40,8 @@ public interface StoryRepository extends JpaRepository<Story, Long> {
             """)
     Page<Story> findTrendingStories(@Param("cutoff") LocalDateTime cutoff, Pageable pageable);
 
+    Page<Story> findByUserUsernameAndStatus(String username, StoryStatus status, Pageable pageable);
+
     Page<Story> findByUserId(Long userId, Pageable pageable);
 
     Optional<Story> findByOriginalStoryId (Long storyId);
