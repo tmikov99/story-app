@@ -127,6 +127,12 @@ public class StoryController {
         storyService.updatePages(storyId, pages);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteStory(@PathVariable Long id) {
+        storyService.deleteStory(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/like/{storyId}")
     public ResponseEntity<LikeResponse> likeStory(@PathVariable Long storyId) {
         return ResponseEntity.ok(storyService.toggleLikeStory(storyId));
