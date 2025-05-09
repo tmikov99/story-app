@@ -6,6 +6,7 @@ import com.coursework.story.dto.PaginatedResponse;
 import com.coursework.story.dto.StoryDTO;
 import com.coursework.story.model.*;
 import com.coursework.story.repository.PageRepository;
+import com.coursework.story.repository.PlaythroughRepository;
 import com.coursework.story.repository.StoryRepository;
 import com.coursework.story.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -30,16 +31,19 @@ public class StoryService {
     private final StoryRepository storyRepository;
     private final UserRepository userRepository;
     private final PageRepository pageRepository;
+    private final PlaythroughRepository playthroughRepository;
     private final NotificationService notificationService;
     private final FirebaseStorageService firebaseStorageService;
     private final DraftService draftService;
 
     public StoryService(StoryRepository storyRepository, UserRepository userRepository,
-                        PageRepository pageRepository, NotificationService notificationService,
-                        FirebaseStorageService firebaseStorageService, DraftService draftService) {
+                        PageRepository pageRepository, PlaythroughRepository playthroughRepository,
+                        NotificationService notificationService, FirebaseStorageService firebaseStorageService,
+                        DraftService draftService) {
         this.storyRepository = storyRepository;
         this.userRepository = userRepository;
         this.pageRepository = pageRepository;
+        this.playthroughRepository = playthroughRepository;
         this.notificationService = notificationService;
         this.firebaseStorageService = firebaseStorageService;
         this.draftService = draftService;
@@ -293,6 +297,27 @@ public class StoryService {
 
         Story savedStory = storyRepository.save(existingStory);
         return new StoryDTO(savedStory);
+    }
+
+    @Transactional
+    public void deleteStory(Long storyId) {
+        User user = getAuthenticatedUser()
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Story story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new RuntimeException("Story not found"));
+
+        if (!story.getUser().equals(user)) {
+            throw new RuntimeException("Unauthorized to delete this story");
+        }
+
+        for (Story draft : story.getDrafts()) {
+            draft.setOriginalStory(null);
+        }
+        storyRepository.saveAll(story.getDrafts());
+
+        playthroughRepository.deleteByStory(story);
+        storyRepository.delete(story);
     }
 
     @Transactional

@@ -50,6 +50,9 @@ public class Story {
     @JoinColumn(name = "original_story_id")
     private Story originalStory;
 
+    @OneToMany(mappedBy = "originalStory")
+    private List<Story> drafts = new ArrayList<>();
+
     @ManyToMany(mappedBy = "likedStories")
     private Set<User> likedByUsers;
 
@@ -204,6 +207,14 @@ public class Story {
 
     public void setOriginalStory(Story originalStory) {
         this.originalStory = originalStory;
+    }
+
+    public List<Story> getDrafts() {
+        return drafts;
+    }
+
+    public void setDrafts(List<Story> drafts) {
+        this.drafts = drafts;
     }
 
     public LocalDateTime getCreatedAt() {
