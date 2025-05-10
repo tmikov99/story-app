@@ -311,6 +311,18 @@ public class StoryService {
             throw new RuntimeException("Unauthorized to delete this story");
         }
 
+        if (story.getLikedByUsers() != null) {
+            for (User u : story.getLikedByUsers()) {
+                u.getLikedStories().remove(story);
+            }
+        }
+
+        if (story.getFavoriteByUsers() != null) {
+            for (User u : story.getFavoriteByUsers()) {
+                u.getFavoriteStories().remove(story);
+            }
+        }
+
         for (Story draft : story.getDrafts()) {
             draft.setOriginalStory(null);
         }
