@@ -1,5 +1,6 @@
 package com.coursework.story.service;
 
+import com.coursework.story.dto.PageDTO;
 import com.coursework.story.dto.PlaythroughDTO;
 import com.coursework.story.model.Page;
 import com.coursework.story.model.Playthrough;
@@ -14,9 +15,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class PlaythroughService {
@@ -34,23 +35,19 @@ public class PlaythroughService {
 
     @Transactional
     public PlaythroughDTO startPlaythrough(Long storyId) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username = userDetails.getUsername();
-
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = getCurrentUser();
         Story story = storyRepository.findById(storyId).orElseThrow(() -> new RuntimeException("Story not found"));
-
-        Optional<Playthrough> existingPlaythrough = playthroughRepository.findByUserAndStory(user, story);
-        if (existingPlaythrough.isPresent()) {
-            return new PlaythroughDTO(existingPlaythrough.get());
-        }
+        playthroughRepository.deactivatePlaythroughsForUserAndStory(user, story);
 
         Playthrough playthrough = new Playthrough();
         playthrough.setUser(user);
         playthrough.setStory(story);
         playthrough.setCurrentPage(story.getPages().getFirst());
-        playthrough.setPath(Collections.singletonList(story.getPages().getFirst().getPageNumber()));
+        playthrough.setPath(new ArrayList<>(List.of(story.getPages().getFirst().getPageNumber())));
+        playthrough.setActive(true);
         playthrough.setCompleted(false);
+        playthrough.setStartedAt(LocalDateTime.now());
+        playthrough.setLastVisited(LocalDateTime.now());
 
         Playthrough savedPlaythrough = playthroughRepository.save(playthrough);
 
@@ -60,47 +57,78 @@ public class PlaythroughService {
         return new PlaythroughDTO(savedPlaythrough);
     }
 
-    public PlaythroughDTO updatePlaythrough(Long storyId, int pageNumber) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username = userDetails.getUsername();
+    @Transactional
+    public PageDTO choosePage(Long playthroughId, int pageNumber) {
+        Playthrough playthrough = getPlaythroughOwnedByUser(playthroughId);
 
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
-        Story story = storyRepository.findById(storyId).orElseThrow(() -> new RuntimeException("Story not found"));
-        Page nextPage = pageRepository.findByStoryIdAndPageNumber(storyId, pageNumber).orElseThrow(() -> new RuntimeException("Page not found"));
-
-        Playthrough playthrough = playthroughRepository.findByUserAndStory(user, story)
-                .orElseThrow(() -> new RuntimeException("Playthrough not found"));
+        Page nextPage = pageRepository.findByStoryIdAndPageNumber(playthrough.getStory().getId(), pageNumber)
+                .orElseThrow(() -> new RuntimeException("Page not found"));
 
         playthrough.setCurrentPage(nextPage);
         playthrough.getPath().add(pageNumber);
+        playthrough.setLastVisited(LocalDateTime.now());
 
         if (nextPage.isEndPage()) {
             playthrough.setCompleted(true);
         }
+        playthroughRepository.save(playthrough);
 
-        Playthrough savedPlaythrough = playthroughRepository.save(playthrough);
-
-        return new PlaythroughDTO(savedPlaythrough);
+        return new PageDTO(nextPage);
     }
 
-    public PlaythroughDTO getPlaythrough(Long storyId) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username = userDetails.getUsername();
-
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
-        Story story = storyRepository.findById(storyId).orElseThrow(() -> new RuntimeException("Story not found"));
-        Playthrough playthrough = playthroughRepository.findByUserAndStory(user, story).orElseThrow(() -> new RuntimeException("Playthrough not found"));
-
+    public PlaythroughDTO getPlaythroughById(Long playthroughId) {
+        Playthrough playthrough = getPlaythroughOwnedByUser(playthroughId);
         return new PlaythroughDTO(playthrough);
     }
 
-    public List<PlaythroughDTO> getAllPlaythroughsForUser() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username = userDetails.getUsername();
-
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
-
-        List<Playthrough> playthroughs = playthroughRepository.findByUserOrderByLastVisitedDesc(user);
+    public List<PlaythroughDTO> getPlaythroughsForUserAndStory(Long storyId) {
+        User user = getCurrentUser();
+        Story story = storyRepository.findById(storyId).orElseThrow(() -> new RuntimeException("Story not found"));
+        List<Playthrough> playthroughs = playthroughRepository.findByUserAndStory(user, story);
         return playthroughs.stream().map(PlaythroughDTO::new).toList();
     }
+
+    @Transactional
+    public void loadPlaythrough(Long playthroughId) {
+        User user = getCurrentUser();
+        Playthrough playthrough = getPlaythroughOwnedByUser(playthroughId);
+        if (playthrough.isActive()) {
+            return;
+        }
+
+        playthroughRepository.deactivatePlaythroughsForUserAndStory(user, playthrough.getStory());
+        playthrough.setActive(true);
+        playthroughRepository.save(playthrough);
+    }
+
+    public PageDTO getCurrentPageForPlaythrough(Long playthroughId) {
+        getCurrentUser();
+        Playthrough playthrough = getPlaythroughOwnedByUser(playthroughId);
+        return new PageDTO(playthrough.getCurrentPage());
+    }
+
+    public List<PlaythroughDTO> getAllPlaythroughsForUser() {
+        User user = getCurrentUser();
+        return playthroughRepository.findByUserOrderByLastVisitedDesc(user)
+                .stream()
+                .map(PlaythroughDTO::new)
+                .toList();
+    }
+
+    private User getCurrentUser() {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+        return userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    private Playthrough getPlaythroughOwnedByUser(Long playthroughId) {
+        Playthrough playthrough = playthroughRepository.findById(playthroughId)
+                .orElseThrow(() -> new RuntimeException("Playthrough not found"));
+        User currentUser = getCurrentUser();
+        if (!playthrough.getUser().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("Unauthorized: You do not own this playthrough.");
+        }
+        return playthrough;
+    }
+
 }
