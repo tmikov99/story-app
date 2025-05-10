@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers(DELETE, "/api/page/**").authenticated()
                         .requestMatchers(GET, "/api/comments/**").permitAll()
                         .requestMatchers(POST, "/api/comments/**").authenticated()
+                        .requestMatchers(DELETE, "/api/comments/**").authenticated()
                         .requestMatchers(GET,"/api/playthrough/**").authenticated()
                         .requestMatchers(PUT,"/api/playthrough/**").authenticated()
                         .requestMatchers(POST,"/api/playthrough/**").authenticated()
