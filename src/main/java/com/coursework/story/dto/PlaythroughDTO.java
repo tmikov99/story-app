@@ -12,13 +12,19 @@ public class PlaythroughDTO {
     private Integer currentPage;
     private List<Integer> path;
     private LocalDateTime lastVisited;
+    private LocalDateTime startedAt;
     private StoryDTO story;
+    private Boolean completed;
+    private Boolean active;
 
     public PlaythroughDTO(Playthrough playthrough) {
         id = playthrough.getId();
         currentPage = playthrough.getCurrentPage().getPageNumber();
         path = playthrough.getPath();
         lastVisited = playthrough.getLastVisited();
+        startedAt = playthrough.getStartedAt();
+        completed = playthrough.isCompleted();
+        active = playthrough.isActive();
         story = new StoryDTO();
         story.setId(playthrough.getStory().getId());
         story.setTitle(playthrough.getStory().getTitle());
@@ -66,11 +72,35 @@ public class PlaythroughDTO {
         this.lastVisited = lastVisited;
     }
 
+    public LocalDateTime getStartedAt() {
+        return startedAt;
+    }
+
+    public void setStartedAt(LocalDateTime startedAt) {
+        this.startedAt = startedAt;
+    }
+
     public StoryDTO getStory() {
         return story;
     }
 
     public void setStory(StoryDTO story) {
         this.story = story;
+    }
+
+    public Boolean getCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(Boolean completed) {
+        this.completed = completed;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 }

@@ -1,7 +1,6 @@
 package com.coursework.story.model;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,9 +27,13 @@ public class Playthrough {
     @ElementCollection
     private List<Integer> path;
 
-    @UpdateTimestamp
     private LocalDateTime lastVisited;
+
+    private LocalDateTime startedAt;
+
     private boolean completed;
+
+    private boolean active;
 
     public Long getId() {
         return id;
@@ -76,11 +79,31 @@ public class Playthrough {
         return lastVisited;
     }
 
+    public void setLastVisited(LocalDateTime lastVisited) {
+        this.lastVisited = lastVisited;
+    }
+
+    public LocalDateTime getStartedAt() {
+        return startedAt;
+    }
+
+    public void setStartedAt(LocalDateTime startedAt) {
+        this.startedAt = startedAt;
+    }
+
     public boolean isCompleted() {
         return completed;
     }
 
     public void setCompleted(boolean completed) {
         this.completed = completed;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }
