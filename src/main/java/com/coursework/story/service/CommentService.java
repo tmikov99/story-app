@@ -10,6 +10,7 @@ import com.coursework.story.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -59,6 +60,24 @@ public class CommentService {
         }
 
         return new CommentDTO(commentRepository.save(comment));
+    }
+
+    @Transactional
+    public void deleteComment(Long commentId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+
+        if (!comment.getUser().getId().equals(user.getId())) {
+            throw new AccessDeniedException("You are not authorized to delete this comment.");
+        }
+
+        commentRepository.delete(comment);
     }
 
     public List<CommentDTO> getCommentsByStory(Long storyId) {

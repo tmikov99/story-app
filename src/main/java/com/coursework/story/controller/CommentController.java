@@ -25,6 +25,12 @@ public class CommentController {
         return ResponseEntity.ok(commentService.addComment(storyId, comment));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteComment(@PathVariable Long id) {
+        commentService.deleteComment(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/story/{storyId}")
     public ResponseEntity<List<CommentDTO>> getComments(@PathVariable Long storyId) {
         return ResponseEntity.ok(commentService.getCommentsByStory(storyId));
