@@ -51,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers(PUT,"/api/playthrough/**").authenticated()
                         .requestMatchers(POST,"/api/playthrough/**").authenticated()
                         .requestMatchers(PATCH,"/api/playthrough/**").authenticated()
+                        .requestMatchers(DELETE,"/api/playthrough/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
