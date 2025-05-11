@@ -16,6 +16,7 @@ public interface PlaythroughRepository extends JpaRepository<Playthrough, Long> 
     List<Playthrough> findByUser(User user);
     List<Playthrough> findByUserOrderByLastVisitedDesc(User user);
     void deleteByStory(Story story);
+    long countByUserAndStory(User user, Story story);
     @Modifying
     @Query("UPDATE Playthrough p SET p.active = false WHERE p.user = :user AND p.story = :story AND p.active = true")
     void deactivatePlaythroughsForUserAndStory(@Param("user") User user, @Param("story") Story story);

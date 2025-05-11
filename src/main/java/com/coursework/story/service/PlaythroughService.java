@@ -39,6 +39,9 @@ public class PlaythroughService {
         Story story = storyRepository.findById(storyId).orElseThrow(() -> new RuntimeException("Story not found"));
         playthroughRepository.deactivatePlaythroughsForUserAndStory(user, story);
 
+        boolean isFirstPlaythrough = playthroughRepository
+                .countByUserAndStory(user, story) == 0;
+
         Playthrough playthrough = new Playthrough();
         playthrough.setUser(user);
         playthrough.setStory(story);
@@ -51,8 +54,10 @@ public class PlaythroughService {
 
         Playthrough savedPlaythrough = playthroughRepository.save(playthrough);
 
-        story.incrementReads();
-        storyRepository.save(story);
+        if (isFirstPlaythrough) {
+            story.incrementReads();
+            storyRepository.save(story);
+        }
 
         return new PlaythroughDTO(savedPlaythrough);
     }
