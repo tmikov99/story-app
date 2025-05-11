@@ -115,6 +115,12 @@ public class PlaythroughService {
                 .toList();
     }
 
+    @Transactional
+    public void deletePlaythrough(Long playthroughId) {
+        Playthrough playthrough = getPlaythroughOwnedByUser(playthroughId);
+        playthroughRepository.delete(playthrough);
+    }
+
     private User getCurrentUser() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = userDetails.getUsername();

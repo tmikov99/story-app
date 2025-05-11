@@ -52,4 +52,10 @@ public class PlaythroughController {
     public ResponseEntity<List<PlaythroughDTO>> getUserPlaythroughs() {
         return ResponseEntity.ok(playthroughService.getAllPlaythroughsForUser());
     }
+
+    @DeleteMapping("/{playthroughId}")
+    public ResponseEntity<Void> deletePlaythrough(@PathVariable Long playthroughId) {
+        playthroughService.deletePlaythrough(playthroughId);
+        return ResponseEntity.noContent().build();
+    }
 }
