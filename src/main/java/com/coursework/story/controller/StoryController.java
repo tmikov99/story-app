@@ -105,6 +105,11 @@ public class StoryController {
         return storyService.updateStory(storyId, story, coverImage);
     }
 
+    @PostMapping("/copyAsDraft/{storyId}")
+    public StoryDTO copyStoryAsDraft(@PathVariable Long storyId) {
+        return storyService.copyStoryAsDraft(storyId);
+    }
+
     @PutMapping("/publish/{storyId}")
     public ResponseEntity<StoryDTO> publishStory(@PathVariable Long storyId) {
         StoryDTO publishedStory = storyService.publishStory(storyId);

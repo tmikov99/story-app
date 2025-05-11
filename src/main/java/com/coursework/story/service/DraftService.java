@@ -6,6 +6,7 @@ import com.coursework.story.repository.StoryRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,20 +24,11 @@ public class DraftService {
 
     public Story ensureDraftExists(Story story) {
         return storyRepository.findByOriginalStoryId(story.getId())
-                .orElseGet(() -> createDraftFromPublished(story, story.getUser()));
+                .orElseGet(() -> createDraftFromPublished(story, story.getUser())); //TODO: replace with published story error
     }
 
-    private Story createDraftFromPublished(Story publishedStory, User user) {
-        Story draft = new Story();
-        draft.setTitle(publishedStory.getTitle());
-        draft.setDescription(publishedStory.getDescription());
-        draft.setGenres(publishedStory.getGenres());
-        draft.setTags(publishedStory.getTags());
-        draft.setStatus(StoryStatus.DRAFT);
-        draft.setUser(user);
-        draft.setOriginalStory(publishedStory);
-        draft.setVersion(publishedStory.getVersion() + 1);
-        draft.setCoverImageUrl(publishedStory.getCoverImageUrl());
+    public Story createDraftFromPublished(Story publishedStory, User user) {
+        Story draft = getStory(publishedStory, user);
 
         Story savedDraft = storyRepository.save(draft);
 
@@ -57,5 +49,20 @@ public class DraftService {
         pageRepository.saveAll(copiedPages);
 
         return savedDraft;
+    }
+
+    private static Story getStory(Story publishedStory, User user) {
+        Story draft = new Story();
+        String baseTitle = publishedStory.getTitle().replaceAll(" DRAFT$", "");
+        draft.setTitle(baseTitle + " DRAFT");
+        draft.setDescription(publishedStory.getDescription());
+        draft.setGenres(new ArrayList<>(publishedStory.getGenres()));
+        draft.setTags(new HashSet<>(publishedStory.getTags()));
+        draft.setStatus(StoryStatus.DRAFT);
+        draft.setUser(user);
+        draft.setOriginalStory(publishedStory);
+        draft.setVersion(publishedStory.getVersion() + 1);
+        draft.setCoverImageUrl(publishedStory.getCoverImageUrl());
+        return draft;
     }
 }

@@ -278,7 +278,7 @@ public class StoryService {
         }
 
         if (existingStory.getStatus() == StoryStatus.PUBLISHED) {
-            existingStory = draftService.ensureDraftExists(existingStory);
+            throw new RuntimeException("Cannot edit a published story. Please create a draft copy first.");
         }
 
         existingStory.setTitle(updatedStory.getTitle());
@@ -297,6 +297,27 @@ public class StoryService {
 
         Story savedStory = storyRepository.save(existingStory);
         return new StoryDTO(savedStory);
+    }
+
+    @Transactional
+    public StoryDTO copyStoryAsDraft(Long storyId) {
+        User user = getAuthenticatedUser()
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Story original = storyRepository.findById(storyId)
+                .orElseThrow(() -> new RuntimeException("Original story not found"));
+
+        if (!original.getUser().equals(user)) {
+            throw new RuntimeException("Unauthorized to copy this story");
+        }
+
+        if (original.getStatus() == StoryStatus.DRAFT) {
+            throw new RuntimeException("Only published stories can be copied");
+        }
+
+        Story draft = draftService.createDraftFromPublished(original, user);
+
+        return new StoryDTO(draft);
     }
 
     @Transactional
