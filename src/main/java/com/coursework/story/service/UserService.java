@@ -68,6 +68,18 @@ public class UserService {
         return new UserDTO(savedUser);
     }
 
+    public void changePassword(String currentPassword, String newPassword) {
+        User user = getAuthenticatedUser()
+                .orElseThrow(() -> new RuntimeException("User not authenticated"));
+
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
     public User findByUsername(String username) {
         return userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
     }

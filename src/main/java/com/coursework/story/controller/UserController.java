@@ -1,5 +1,6 @@
 package com.coursework.story.controller;
 
+import com.coursework.story.dto.PasswordChangeRequest;
 import com.coursework.story.dto.UserDTO;
 import com.coursework.story.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +32,12 @@ public class UserController {
     }
 
     @PutMapping("/password")
-    public ResponseEntity<Boolean> updatePassword() {
-        return ResponseEntity.ok(true);
+    public ResponseEntity<String> updatePassword(@RequestBody PasswordChangeRequest request) {
+        try {
+            userService.changePassword(request.getCurrentPassword(), request.getNewPassword());
+            return ResponseEntity.ok("Password updated successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
