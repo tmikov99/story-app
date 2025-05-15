@@ -2,6 +2,7 @@ package com.coursework.story.service;
 
 import com.coursework.story.dto.CommentDTO;
 import com.coursework.story.model.Comment;
+import com.coursework.story.model.NotificationType;
 import com.coursework.story.model.Story;
 import com.coursework.story.model.User;
 import com.coursework.story.repository.CommentRepository;
@@ -55,7 +56,9 @@ public class CommentService {
         if (!Objects.equals(story.getUser().getId(), comment.getUser().getId())) {
             notificationService.send(
                     story.getUser(),
-                    "💬 Your story \"" + story.getTitle() + "\" received a new comment!"
+                    "💬 Your story \"" + story.getTitle() + "\" received a new comment!",
+                    NotificationType.NEW_COMMENT,
+                    storyId
             );
         }
 
