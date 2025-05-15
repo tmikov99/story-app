@@ -45,4 +45,7 @@ public interface StoryRepository extends JpaRepository<Story, Long> {
     Page<Story> findByUserId(Long userId, Pageable pageable);
 
     Optional<Story> findByOriginalStoryId (Long storyId);
+
+    @Query("SELECT COUNT(s) FROM stories s WHERE s.coverImageUrl = :imageUrl AND s.id <> :storyId")
+    long countByCoverImageUrlExcludingStory(@Param("imageUrl") String imageUrl, @Param("storyId") Long storyId);
 }

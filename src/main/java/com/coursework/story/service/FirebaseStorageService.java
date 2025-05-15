@@ -31,4 +31,22 @@ public class FirebaseStorageService {
 
         return String.format("https://storage.googleapis.com/%s/%s", bucket.getName(), blob.getName());
     }
+
+    public String extractBlobPath(String publicUrl) {
+        String prefix = "https://storage.googleapis.com/" + storageBucket + "/";
+        if (publicUrl.startsWith(prefix)) {
+            return publicUrl.substring(prefix.length());
+        }
+        throw new IllegalArgumentException("Invalid Firebase Storage URL: " + publicUrl);
+    }
+
+    public void deleteFile(String blobPath) {
+        if (blobPath.toLowerCase().contains("default")) {
+            return;
+        }
+
+        Bucket bucket = StorageClient.getInstance().bucket();
+        Blob blob = bucket.get(blobPath);
+        blob.delete();
+    }
 }

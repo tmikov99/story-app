@@ -287,9 +287,18 @@ public class StoryService {
         existingStory.setTags(updatedStory.getTags());
 
         if (coverImg != null && !coverImg.isEmpty()) {
+            String oldImageUrl = existingStory.getCoverImageUrl();
             try {
                 String coverImageUrl = firebaseStorageService.uploadFile(coverImg, "thumbnails/" + existingStory.getId());
                 existingStory.setCoverImageUrl(coverImageUrl);
+
+                if (oldImageUrl != null && !oldImageUrl.toLowerCase().contains("default")) {
+                    long count = storyRepository.countByCoverImageUrlExcludingStory(oldImageUrl, existingStory.getId());
+                    if (count == 0) {
+                        String firebasePath = firebaseStorageService.extractBlobPath(oldImageUrl);
+                        firebaseStorageService.deleteFile(firebasePath);
+                    }
+                }
             } catch (IOException e) {
                 throw new RuntimeException("Image upload failed", e);
             }
@@ -348,6 +357,15 @@ public class StoryService {
             draft.setOriginalStory(null);
         }
         storyRepository.saveAll(story.getDrafts());
+
+        String imageUrl = story.getCoverImageUrl();
+        if (imageUrl != null && !imageUrl.toLowerCase().contains("default")) {
+            long count = storyRepository.countByCoverImageUrlExcludingStory(imageUrl, story.getId());
+            if (count == 0) {
+                String firebasePath = firebaseStorageService.extractBlobPath(imageUrl);
+                firebaseStorageService.deleteFile(firebasePath);
+            }
+        }
 
         playthroughRepository.deleteByStory(story);
         storyRepository.delete(story);

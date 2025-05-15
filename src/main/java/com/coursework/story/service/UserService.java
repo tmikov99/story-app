@@ -56,13 +56,19 @@ public class UserService {
 
     public UserDTO setUserPicture(MultipartFile file) {
         User user = getAuthenticatedUser().orElseThrow(() -> new RuntimeException("User not found"));
+        String oldImageUrl = user.getImageUrl();
         String imgUrl = null;
         try {
-            imgUrl = firebaseStorageService.uploadFile(file, "thumbnails/" + user.getId());
+            imgUrl = firebaseStorageService.uploadFile(file, "profile_pics/" + user.getId());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Image upload failed", e);
         }
         user.setImageUrl(imgUrl);
+
+        if (oldImageUrl != null) {
+            String firebasePath = firebaseStorageService.extractBlobPath(oldImageUrl);
+            firebaseStorageService.deleteFile(firebasePath);
+        }
 
         User savedUser = userRepository.save(user);
         return new UserDTO(savedUser);
