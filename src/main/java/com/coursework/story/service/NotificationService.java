@@ -2,6 +2,7 @@ package com.coursework.story.service;
 
 import com.coursework.story.dto.NotificationDTO;
 import com.coursework.story.model.Notification;
+import com.coursework.story.model.NotificationType;
 import com.coursework.story.model.User;
 import com.coursework.story.repository.NotificationRepository;
 import jakarta.transaction.Transactional;
@@ -22,10 +23,12 @@ public class NotificationService {
         this.userService = userService;
     }
 
-    public void send(User recipient, String message) {
+    public void send(User recipient, String message, NotificationType type, Long targetId) {
         Notification notification = new Notification();
         notification.setMessage(message);
         notification.setRecipient(recipient);
+        notification.setType(type);
+        notification.setTargetId(targetId);
         notificationRepository.save(notification);
     }
 

@@ -13,6 +13,7 @@ public class Notification {
     private Long id;
 
     private String message;
+
     private boolean read = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -20,6 +21,11 @@ public class Notification {
     private User recipient;
 
     private LocalDateTime timestamp = LocalDateTime.now();
+
+    @Enumerated(EnumType.STRING)
+    private NotificationType type;
+
+    private Long targetId;
 
     public Long getId() {
         return id;
@@ -59,5 +65,21 @@ public class Notification {
 
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public NotificationType getType() {
+        return type;
+    }
+
+    public void setType(NotificationType type) {
+        this.type = type;
+    }
+
+    public Long getTargetId() {
+        return targetId;
+    }
+
+    public void setTargetId(Long targetId) {
+        this.targetId = targetId;
     }
 }

@@ -1,6 +1,7 @@
 package com.coursework.story.dto;
 
 import com.coursework.story.model.Notification;
+import com.coursework.story.model.NotificationType;
 
 import java.time.LocalDateTime;
 
@@ -9,6 +10,8 @@ public class NotificationDTO {
     private String message;
     private boolean read;
     private LocalDateTime timestamp;
+    private NotificationType type;
+    private Long targetId;
 
     public NotificationDTO() {}
 
@@ -17,6 +20,8 @@ public class NotificationDTO {
         message = notification.getMessage();
         read = notification.isRead();
         timestamp = notification.getTimestamp();
+        type = notification.getType();
+        targetId = notification.getTargetId();
     }
 
     public Long getId() {
@@ -49,5 +54,21 @@ public class NotificationDTO {
 
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public NotificationType getType() {
+        return type;
+    }
+
+    public void setType(NotificationType type) {
+        this.type = type;
+    }
+
+    public Long getTargetId() {
+        return targetId;
+    }
+
+    public void setTargetId(Long targetId) {
+        this.targetId = targetId;
     }
 }

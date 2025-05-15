@@ -438,7 +438,9 @@ public class StoryService {
             if (story.getLikes() == 10) {
                 notificationService.send(
                         story.getUser(),
-                        "🎉 Your story \"" + story.getTitle() + "\" just reached 10 likes!"
+                        "🎉 Your story \"" + story.getTitle() + "\" just reached 10 likes!",
+                        NotificationType.ACHIEVED_VIEWS,
+                        storyId
                 );
             }
         }
