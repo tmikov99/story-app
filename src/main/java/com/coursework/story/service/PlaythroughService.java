@@ -11,6 +11,7 @@ import com.coursework.story.repository.PlaythroughRepository;
 import com.coursework.story.repository.StoryRepository;
 import com.coursework.story.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -112,12 +113,10 @@ public class PlaythroughService {
         return new PageDTO(playthrough.getCurrentPage());
     }
 
-    public List<PlaythroughDTO> getAllPlaythroughsForUser() {
+    public org.springframework.data.domain.Page<PlaythroughDTO> getPaginatedPlaythroughsForUser(Pageable pageable) {
         User user = getCurrentUser();
-        return playthroughRepository.findByUserOrderByLastVisitedDesc(user)
-                .stream()
-                .map(PlaythroughDTO::new)
-                .toList();
+        org.springframework.data.domain.Page<Playthrough> page = playthroughRepository.findByUserOrderByLastVisitedDesc(user, pageable);
+        return page.map(PlaythroughDTO::new);
     }
 
     @Transactional

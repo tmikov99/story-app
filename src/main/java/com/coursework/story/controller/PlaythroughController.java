@@ -1,8 +1,11 @@
 package com.coursework.story.controller;
 
 import com.coursework.story.dto.PageDTO;
+import com.coursework.story.dto.PaginatedResponse;
 import com.coursework.story.dto.PlaythroughDTO;
 import com.coursework.story.service.PlaythroughService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,8 +52,9 @@ public class PlaythroughController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PlaythroughDTO>> getUserPlaythroughs() {
-        return ResponseEntity.ok(playthroughService.getAllPlaythroughsForUser());
+    public PaginatedResponse<PlaythroughDTO> getUserPlaythroughs(Pageable pageable) {
+        Page<PlaythroughDTO> page = playthroughService.getPaginatedPlaythroughsForUser(pageable);
+        return PaginatedResponse.fromPage(page);
     }
 
     @DeleteMapping("/{playthroughId}")
