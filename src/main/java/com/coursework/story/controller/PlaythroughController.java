@@ -52,8 +52,11 @@ public class PlaythroughController {
     }
 
     @GetMapping
-    public PaginatedResponse<PlaythroughDTO> getUserPlaythroughs(Pageable pageable) {
-        Page<PlaythroughDTO> page = playthroughService.getPaginatedPlaythroughsForUser(pageable);
+    public PaginatedResponse<PlaythroughDTO> getUserPlaythroughs(
+            @RequestParam(required = false) String q,
+            Pageable pageable
+    ) {
+        Page<PlaythroughDTO> page = playthroughService.getPaginatedPlaythroughsForUser(q, pageable);
         return PaginatedResponse.fromPage(page);
     }
 

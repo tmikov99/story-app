@@ -14,11 +14,13 @@ import java.util.List;
 
 public interface PlaythroughRepository extends JpaRepository<Playthrough, Long> {
     List<Playthrough> findByUserAndStory(User user, Story story);
-    List<Playthrough> findByUser(User user);
-    Page<Playthrough> findByUserOrderByLastVisitedDesc(User user, Pageable pageable);
+    Page<Playthrough> findByUser(User user, Pageable pageable);
     void deleteByStory(Story story);
     long countByUserAndStory(User user, Story story);
     @Modifying
     @Query("UPDATE Playthrough p SET p.active = false WHERE p.user = :user AND p.story = :story AND p.active = true")
     void deactivatePlaythroughsForUserAndStory(@Param("user") User user, @Param("story") Story story);
+
+    @Query("SELECT p FROM Playthrough p WHERE p.user = :user AND LOWER(p.story.title) LIKE LOWER(CONCAT('%', :query, '%'))")
+    Page<Playthrough> searchByUserAndStoryTitle(@Param("user") User user, @Param("query") String query, Pageable pageable);
 }
