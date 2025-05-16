@@ -113,12 +113,16 @@ public class PlaythroughService {
         return new PageDTO(playthrough.getCurrentPage());
     }
 
-    public org.springframework.data.domain.Page<PlaythroughDTO> getPaginatedPlaythroughsForUser(Pageable pageable) {
+    public org.springframework.data.domain.Page<PlaythroughDTO> getPaginatedPlaythroughsForUser(String query, Pageable pageable) {
         User user = getCurrentUser();
-        org.springframework.data.domain.Page<Playthrough> page = playthroughRepository.findByUserOrderByLastVisitedDesc(user, pageable);
+        org.springframework.data.domain.Page<Playthrough> page;
+        if (query != null && !query.isBlank()) {
+            page = playthroughRepository.searchByUserAndStoryTitle(user, query, pageable);
+        } else {
+            page = playthroughRepository.findByUser(user, pageable);
+        }
         return page.map(PlaythroughDTO::new);
     }
-
     @Transactional
     public void deletePlaythrough(Long playthroughId) {
         Playthrough playthrough = getPlaythroughOwnedByUser(playthroughId);
