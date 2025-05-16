@@ -83,10 +83,9 @@ public class CommentService {
         commentRepository.delete(comment);
     }
 
-    public List<CommentDTO> getCommentsByStory(Long storyId) {
-        return commentRepository.findByStoryIdOrderByCreatedAt(storyId).stream()
-                .map(CommentDTO::new)
-                .collect(Collectors.toList());
+    public Page<CommentDTO> getCommentsByStory(Long storyId, Pageable pageable) {
+        Page<Comment> comments = commentRepository.findByStoryIdOrderByCreatedAt(storyId, pageable);
+        return comments.map(CommentDTO::new);
     }
 
     public Page<CommentDTO> getUserComments(Pageable pageable) {

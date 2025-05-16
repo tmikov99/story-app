@@ -32,8 +32,11 @@ public class CommentController {
     }
 
     @GetMapping("/story/{storyId}")
-    public ResponseEntity<List<CommentDTO>> getComments(@PathVariable Long storyId) {
-        return ResponseEntity.ok(commentService.getCommentsByStory(storyId));
+    public ResponseEntity<PaginatedResponse<CommentDTO>> getComments(
+            @PathVariable Long storyId,
+            Pageable pageable) {
+        Page<CommentDTO> page = commentService.getCommentsByStory(storyId, pageable);
+        return ResponseEntity.ok(PaginatedResponse.fromPage(page));
     }
 
     @GetMapping("/mine")
