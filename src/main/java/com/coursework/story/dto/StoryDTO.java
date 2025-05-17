@@ -20,7 +20,7 @@ public class StoryDTO {
     private Set<String> tags;
     private String description;
     private Integer pageCount;
-    private Integer startPage;
+    private Integer startPageNumber;
     private StoryStatus status;
     private Integer version;
     private Long originalStoryId;
@@ -43,7 +43,7 @@ public class StoryDTO {
         tags = story.getTags();
         description = story.getDescription();
         pageCount = story.getPageCount();
-        startPage = 1;
+        startPageNumber = story.getStartPageNumber();
         status = story.getStatus();
         version = story.getVersion();
         originalStoryId = story.getStatus() == StoryStatus.DRAFT && story.getOriginalStory() != null
@@ -65,7 +65,7 @@ public class StoryDTO {
         tags = story.getTags();
         description = story.getDescription();
         pageCount = story.getPageCount();
-        startPage = 1;
+        startPageNumber = story.getStartPageNumber();
         status = story.getStatus();
         version = story.getVersion();
         originalStoryId = story.getStatus() == StoryStatus.DRAFT && story.getOriginalStory() != null
@@ -134,12 +134,12 @@ public class StoryDTO {
         this.pageCount = pageCount;
     }
 
-    public Integer getStartPage() {
-        return startPage;
+    public Integer getStartPageNumber() {
+        return startPageNumber;
     }
 
-    public void setStartPage(Integer startPage) {
-        this.startPage = startPage;
+    public void setStartPageNumber(Integer startPageNumber) {
+        this.startPageNumber = startPageNumber;
     }
 
     public UserDTO getUser() {

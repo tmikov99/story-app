@@ -43,11 +43,18 @@ public class PlaythroughService {
         boolean isFirstPlaythrough = playthroughRepository
                 .countByUserAndStory(user, story) == 0;
 
+        Integer startPageNumber = story.getStartPageNumber();
+        Page startPage = story.getPages()
+                .stream()
+                .filter(p -> p.getPageNumber() == startPageNumber)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Start page not found"));
+
         Playthrough playthrough = new Playthrough();
         playthrough.setUser(user);
         playthrough.setStory(story);
-        playthrough.setCurrentPage(story.getPages().getFirst());
-        playthrough.setPath(new ArrayList<>(List.of(story.getPages().getFirst().getPageNumber())));
+        playthrough.setCurrentPage(startPage);
+        playthrough.setPath(new ArrayList<>(List.of(startPageNumber)));
         playthrough.setActive(true);
         playthrough.setCompleted(false);
         playthrough.setStartedAt(LocalDateTime.now());

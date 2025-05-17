@@ -41,6 +41,8 @@ public class Story {
 
     private Integer pageCount;
 
+    private int startPageNumber;
+
     @Enumerated(EnumType.STRING)
     private StoryStatus status = StoryStatus.DRAFT;
 
@@ -183,6 +185,14 @@ public class Story {
 
     public void setPageCount() {
         this.pageCount = pages.size();
+    }
+
+    public Integer getStartPageNumber() {
+        return startPageNumber;
+    }
+
+    public void setStartPageNumber(int startPageNumber) {
+        this.startPageNumber = startPageNumber;
     }
 
     public StoryStatus getStatus() {
