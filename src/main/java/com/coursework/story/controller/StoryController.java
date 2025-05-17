@@ -1,9 +1,6 @@
 package com.coursework.story.controller;
 
-import com.coursework.story.dto.LikeResponse;
-import com.coursework.story.dto.PageDTO;
-import com.coursework.story.dto.PaginatedResponse;
-import com.coursework.story.dto.StoryDTO;
+import com.coursework.story.dto.*;
 import com.coursework.story.model.Genre;
 import com.coursework.story.model.Story;
 import com.coursework.story.service.StoryService;
@@ -103,6 +100,15 @@ public class StoryController {
                                 @RequestPart("story") StoryDTO story,
                                 @RequestPart(value = "file", required = false) MultipartFile coverImage) {
         return storyService.updateStory(storyId, story, coverImage);
+    }
+
+    @PatchMapping("/{storyId}/start-page")
+    public ResponseEntity<Integer> updateStartPageNumber(
+            @PathVariable Long storyId,
+            @RequestBody UpdateStartPageDTO dto
+    ) {
+        int startPage = storyService.updateStartPageNumber(storyId, dto.getStartPageNumber());
+        return ResponseEntity.ok(startPage);
     }
 
     @PostMapping("/copyAsDraft/{storyId}")

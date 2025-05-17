@@ -312,6 +312,26 @@ public class StoryService {
     }
 
     @Transactional
+    public int updateStartPageNumber(Long storyId, int startPageNumber) {
+        User user = getAuthenticatedUser()
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        Story story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new NotFoundException("Story not found"));
+
+        if (!story.getUser().equals(user)) {
+            throw new UnauthorizedException("Unauthorized");
+        }
+
+        if (story.getStatus() == StoryStatus.PUBLISHED) {
+            throw new BadRequestException("Cannot modify a published story.");
+        }
+
+        story.setStartPageNumber(startPageNumber);
+        return storyRepository.save(story).getStartPageNumber();
+    }
+
+    @Transactional
     public StoryDTO copyStoryAsDraft(Long storyId) {
         User user = getAuthenticatedUser()
                 .orElseThrow(() -> new NotFoundException("User not found"));
