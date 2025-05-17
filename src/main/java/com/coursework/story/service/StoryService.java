@@ -4,6 +4,9 @@ import com.coursework.story.dto.LikeResponse;
 import com.coursework.story.dto.PageDTO;
 import com.coursework.story.dto.PaginatedResponse;
 import com.coursework.story.dto.StoryDTO;
+import com.coursework.story.exception.BadRequestException;
+import com.coursework.story.exception.NotFoundException;
+import com.coursework.story.exception.UnauthorizedException;
 import com.coursework.story.model.*;
 import com.coursework.story.repository.PageRepository;
 import com.coursework.story.repository.PlaythroughRepository;
@@ -73,18 +76,18 @@ public class StoryService {
 
     public StoryDTO getStoryById(Long storyId) {
         Story story = storyRepository.findById(storyId)
-                .orElseThrow(() -> new RuntimeException("Story not found"));
+                .orElseThrow(() -> new NotFoundException("Story not found"));
         return new StoryDTO(story, story.getPages());
     }
 
     public StoryDTO getStoryPreviewById(Long storyId) {
         Optional<User> user = getAuthenticatedUser();
         Story story = storyRepository.findById(storyId)
-                .orElseThrow(() -> new RuntimeException("Story not found"));
+                .orElseThrow(() -> new NotFoundException("Story not found"));
 
         if (story.getStatus() == StoryStatus.DRAFT) {
             if (user.isEmpty() || !story.getUser().getId().equals(user.get().getId())) {
-                throw new RuntimeException("Unauthorized access to draft story");
+                throw new UnauthorizedException("Unauthorized access to draft story");
             }
         }
 
@@ -244,7 +247,7 @@ public class StoryService {
     @Transactional
     public StoryDTO saveStory(Story story, MultipartFile coverImg) {
         User user = getAuthenticatedUser()
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
         story.setUser(user);
 
         Story savedStory = storyRepository.save(story);
@@ -268,17 +271,17 @@ public class StoryService {
 
     @Transactional
     public StoryDTO updateStory(Long storyId, StoryDTO updatedStory, MultipartFile coverImg) {
-        User user = getAuthenticatedUser().orElseThrow(() -> new RuntimeException("User not found"));
+        User user = getAuthenticatedUser().orElseThrow(() -> new NotFoundException("User not found"));
 
         Story existingStory = storyRepository.findById(storyId)
-                .orElseThrow(() -> new RuntimeException("Story not found"));
+                .orElseThrow(() -> new NotFoundException("Story not found"));
 
         if (!existingStory.getUser().equals(user)) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
         }
 
         if (existingStory.getStatus() == StoryStatus.PUBLISHED) {
-            throw new RuntimeException("Cannot edit a published story. Please create a draft copy first.");
+            throw new BadRequestException("Cannot edit a published story. Please create a draft copy first.");
         }
 
         existingStory.setTitle(updatedStory.getTitle());
@@ -311,17 +314,17 @@ public class StoryService {
     @Transactional
     public StoryDTO copyStoryAsDraft(Long storyId) {
         User user = getAuthenticatedUser()
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         Story original = storyRepository.findById(storyId)
-                .orElseThrow(() -> new RuntimeException("Original story not found"));
+                .orElseThrow(() -> new NotFoundException("Original story not found"));
 
         if (!original.getUser().equals(user)) {
-            throw new RuntimeException("Unauthorized to copy this story");
+            throw new UnauthorizedException("Unauthorized to copy this story");
         }
 
         if (original.getStatus() == StoryStatus.DRAFT) {
-            throw new RuntimeException("Only published stories can be copied");
+            throw new BadRequestException("Only published stories can be copied");
         }
 
         Story draft = draftService.createDraftFromPublished(original, user);
@@ -332,13 +335,13 @@ public class StoryService {
     @Transactional
     public void deleteStory(Long storyId) {
         User user = getAuthenticatedUser()
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         Story story = storyRepository.findById(storyId)
-                .orElseThrow(() -> new RuntimeException("Story not found"));
+                .orElseThrow(() -> new NotFoundException("Story not found"));
 
         if (!story.getUser().equals(user)) {
-            throw new RuntimeException("Unauthorized to delete this story");
+            throw new UnauthorizedException("Unauthorized to delete this story");
         }
 
         if (story.getLikedByUsers() != null) {
@@ -373,17 +376,17 @@ public class StoryService {
 
     @Transactional
     public StoryDTO publishStory(Long storyId) {
-        User user = getAuthenticatedUser().orElseThrow(() -> new RuntimeException("User not found"));
+        User user = getAuthenticatedUser().orElseThrow(() -> new NotFoundException("User not found"));
 
         Story story = storyRepository.findById(storyId)
-                .orElseThrow(() -> new RuntimeException("Story not found"));
+                .orElseThrow(() -> new NotFoundException("Story not found"));
 
         if (!story.getUser().equals(user)) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
         }
 
         if (story.getStatus() == StoryStatus.PUBLISHED) {
-            throw new RuntimeException("Story already published");
+            throw new BadRequestException("Story already published");
         }
 
         story.setOriginalStory(null);
@@ -396,17 +399,17 @@ public class StoryService {
 
     @Transactional
     public StoryDTO archiveStory(Long storyId) {
-        User user = getAuthenticatedUser().orElseThrow(() -> new RuntimeException("User not found"));
+        User user = getAuthenticatedUser().orElseThrow(() -> new NotFoundException("User not found"));
 
         Story story = storyRepository.findById(storyId)
-                .orElseThrow(() -> new RuntimeException("Story not found"));
+                .orElseThrow(() -> new NotFoundException("Story not found"));
 
         if (!story.getUser().equals(user)) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
         }
 
         if (story.getStatus() != StoryStatus.PUBLISHED) {
-            throw new RuntimeException("Story needs to be published before being archived");
+            throw new BadRequestException("Story needs to be published before being archived");
         }
 
         story.setStatus(StoryStatus.ARCHIVED);
@@ -419,10 +422,10 @@ public class StoryService {
     @Transactional
     public LikeResponse toggleLikeStory(Long storyId) {
         User user = getAuthenticatedUser()
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         Story story = storyRepository.findById(storyId)
-                .orElseThrow(() -> new RuntimeException("Story not found"));
+                .orElseThrow(() -> new NotFoundException("Story not found"));
 
         Set<Story> likedStories = user.getLikedStories();
         boolean response;
@@ -453,10 +456,10 @@ public class StoryService {
     @Transactional
     public boolean toggleFavoriteStory(Long storyId) {
         User user = getAuthenticatedUser()
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         Story story = storyRepository.findById(storyId)
-                .orElseThrow(() -> new RuntimeException("Story not found"));
+                .orElseThrow(() -> new NotFoundException("Story not found"));
 
         Set<Story> favoriteStories = user.getFavoriteStories();
         boolean response;
@@ -477,7 +480,7 @@ public class StoryService {
     }
 
     public org.springframework.data.domain.Page<StoryDTO> getLikedStories(Pageable pageable) {
-        User user = getAuthenticatedUser().orElseThrow(() -> new RuntimeException("User not found"));
+        User user = getAuthenticatedUser().orElseThrow(() -> new NotFoundException("User not found"));
         Pageable sortedPageable = applyDefaultSortIfMissing(pageable);
 
         org.springframework.data.domain.Page<Story> page = storyRepository.findStoriesLikedByUserId(user.getId(), sortedPageable);
@@ -489,7 +492,7 @@ public class StoryService {
     }
 
     public org.springframework.data.domain.Page<StoryDTO> getFavoriteStories(Pageable pageable) {
-        User user = getAuthenticatedUser().orElseThrow(() -> new RuntimeException("User not found"));
+        User user = getAuthenticatedUser().orElseThrow(() -> new NotFoundException("User not found"));
         Pageable sortedPageable = applyDefaultSortIfMissing(pageable);
 
         org.springframework.data.domain.Page<Story> page = storyRepository.findStoriesFavoriteByUserId(user.getId(), sortedPageable);
@@ -502,7 +505,7 @@ public class StoryService {
 
     public org.springframework.data.domain.Page<StoryDTO> getUserStories(Pageable pageable) {
         User user = getAuthenticatedUser()
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         Pageable sortedPageable = applyDefaultSortIfMissing(pageable);
 
