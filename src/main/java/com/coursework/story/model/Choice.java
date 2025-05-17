@@ -6,11 +6,11 @@ import jakarta.persistence.Embeddable;
 public class Choice {
 
     private String text;
-    private Long targetPage;
+    private Integer targetPage;
 
     public Choice() {}
 
-    public Choice(String text, Long targetPage) {
+    public Choice(String text, Integer targetPage) {
         this.text = text;
         this.targetPage = targetPage;
     }
@@ -23,11 +23,11 @@ public class Choice {
         this.text = text;
     }
 
-    public Long getTargetPage() {
+    public Integer getTargetPage() {
         return targetPage;
     }
 
-    public void setTargetPage(Long targetPage) {
+    public void setTargetPage(Integer targetPage) {
         this.targetPage = targetPage;
     }
 }

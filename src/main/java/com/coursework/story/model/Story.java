@@ -41,7 +41,7 @@ public class Story {
 
     private Integer pageCount;
 
-    private int startPageNumber;
+    private Integer startPageNumber;
 
     @Enumerated(EnumType.STRING)
     private StoryStatus status = StoryStatus.DRAFT;
@@ -191,7 +191,7 @@ public class Story {
         return startPageNumber;
     }
 
-    public void setStartPageNumber(int startPageNumber) {
+    public void setStartPageNumber(Integer startPageNumber) {
         this.startPageNumber = startPageNumber;
     }
 
