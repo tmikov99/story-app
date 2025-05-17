@@ -142,6 +142,11 @@ public class PageService {
                     .orElseThrow(() -> new RuntimeException("Page not found in draft"));
         }
 
+        if (story.getStartPageNumber() != null && story.getStartPageNumber().equals(page.getPageNumber())) {
+            story.setStartPageNumber(null);
+            storyRepository.save(story);
+        }
+
         pageRepository.delete(page);
     }
 

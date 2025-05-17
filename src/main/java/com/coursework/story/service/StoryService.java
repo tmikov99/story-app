@@ -6,6 +6,7 @@ import com.coursework.story.dto.PaginatedResponse;
 import com.coursework.story.dto.StoryDTO;
 import com.coursework.story.exception.BadRequestException;
 import com.coursework.story.exception.NotFoundException;
+import com.coursework.story.exception.StoryValidationException;
 import com.coursework.story.exception.UnauthorizedException;
 import com.coursework.story.model.*;
 import com.coursework.story.repository.PageRepository;
@@ -409,6 +410,8 @@ public class StoryService {
             throw new BadRequestException("Story already published");
         }
 
+        validateStoryBeforePublish(story);
+
         story.setOriginalStory(null);
         story.setStatus(StoryStatus.PUBLISHED);
 
@@ -564,5 +567,80 @@ public class StoryService {
             case POST_APOCALYPTIC -> FIREBASE_DEFAULTS.concat("post_apocalyptic.jpg");
             default -> FIREBASE_DEFAULTS.concat("default.jpg");
         };
+    }
+
+    private void validateStoryBeforePublish(Story story) {
+        List<String> errors = new ArrayList<>();
+
+        List<Page> pages = story.getPages();
+        if (pages == null || pages.isEmpty()) {
+            errors.add("A story must have at least one page.");
+            throw new StoryValidationException(errors);
+        }
+
+        Set<Integer> pageNumbers = pages.stream()
+                .map(Page::getPageNumber)
+                .collect(Collectors.toSet());
+
+        Integer startPage = story.getStartPageNumber();
+
+        if (startPage == null) {
+            errors.add("Start page must be set before publishing.");
+        } else {
+            if (!pageNumbers.contains(startPage)) {
+                errors.add("Start page must be one of the story's pages.");
+            }
+        }
+
+        Map<Integer, Long> pageNumberCounts = pages.stream()
+                .collect(Collectors.groupingBy(Page::getPageNumber, Collectors.counting()));
+
+        List<Integer> duplicates = pageNumberCounts.entrySet().stream()
+                .filter(e -> e.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .toList();
+
+        if (!duplicates.isEmpty()) {
+            errors.add("Duplicate page numbers found: " + duplicates);
+        }
+
+        Map<Integer, List<Integer>> graph = new HashMap<>();
+        for (Page page : pages) {
+            int from = page.getPageNumber();
+            graph.putIfAbsent(from, new ArrayList<>());
+            for (Choice choice : page.getChoices()) {
+                int to = choice.getTargetPage();
+                if (!pageNumbers.contains(to)) {
+                    errors.add("Choice on page " + from + " points to a non-existent page: " + to);
+                }
+                graph.get(from).add(to);
+            }
+        }
+
+        if (startPage != null && pageNumbers.contains(startPage)) {
+            Set<Integer> visited = new HashSet<>();
+            Queue<Integer> queue = new LinkedList<>();
+            queue.add(startPage);
+            visited.add(startPage);
+
+            while (!queue.isEmpty()) {
+                int current = queue.poll();
+                for (int neighbor : graph.getOrDefault(current, List.of())) {
+                    if (visited.add(neighbor)) {
+                        queue.add(neighbor);
+                    }
+                }
+            }
+
+            Set<Integer> unreachable = new HashSet<>(pageNumbers);
+            unreachable.removeAll(visited);
+            if (!unreachable.isEmpty()) {
+                errors.add("The following pages are unreachable from the start page: " + unreachable);
+            }
+        }
+
+        if (!errors.isEmpty()) {
+            throw new StoryValidationException(errors);
+        }
     }
 }

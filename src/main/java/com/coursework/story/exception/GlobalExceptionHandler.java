@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -28,6 +29,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
         return buildErrorResponse("Unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(StoryValidationException.class)
+    public ResponseEntity<ValidationErrorResponse> handleValidationException(StoryValidationException ex) {
+        ValidationErrorResponse response = new ValidationErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation failed",
+                ex.getErrors(),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     private ResponseEntity<ErrorResponse> buildErrorResponse(String message, HttpStatus status) {
@@ -68,6 +80,23 @@ public class GlobalExceptionHandler {
 
         public void setTimestamp(LocalDateTime timestamp) {
             this.timestamp = timestamp;
+        }
+    }
+
+    public static class ValidationErrorResponse extends ErrorResponse {
+        private List<String> errors;
+
+        public ValidationErrorResponse(int status, String message, List<String> errors, LocalDateTime timestamp) {
+            super(status, message, timestamp);
+            this.errors = errors;
+        }
+
+        public List<String> getErrors() {
+            return errors;
+        }
+
+        public void setErrors(List<String> errors) {
+            this.errors = errors;
         }
     }
 }
