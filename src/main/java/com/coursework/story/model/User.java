@@ -22,6 +22,9 @@ public class User implements UserDetails {
     private String email;
     private String password;
     private String imageUrl;
+    private boolean emailVerified = false;
+    private String verificationToken;
+    private String resetToken;
 
     @ElementCollection(fetch = FetchType.EAGER)
     private Set<String> roles;
@@ -152,5 +155,29 @@ public class User implements UserDetails {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public String getVerificationToken() {
+        return verificationToken;
+    }
+
+    public void setVerificationToken(String verificationToken) {
+        this.verificationToken = verificationToken;
+    }
+
+    public String getResetToken() {
+        return resetToken;
+    }
+
+    public void setResetToken(String resetToken) {
+        this.resetToken = resetToken;
     }
 }
