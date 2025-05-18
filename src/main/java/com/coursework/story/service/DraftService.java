@@ -58,6 +58,7 @@ public class DraftService {
         draft.setDescription(publishedStory.getDescription());
         draft.setGenres(new ArrayList<>(publishedStory.getGenres()));
         draft.setTags(new HashSet<>(publishedStory.getTags()));
+        draft.setStartPageNumber(publishedStory.getStartPageNumber());
         draft.setStatus(StoryStatus.DRAFT);
         draft.setUser(user);
         draft.setOriginalStory(publishedStory);

@@ -12,13 +12,9 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 public class CommentService {
@@ -27,22 +23,21 @@ public class CommentService {
     private final StoryRepository storyRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final AuthService authService;
 
     public CommentService(CommentRepository commentRepository, StoryRepository storyRepository,
-                          UserRepository userRepository, NotificationService notificationService) {
+                          UserRepository userRepository, NotificationService notificationService,
+                          AuthService authService) {
         this.commentRepository = commentRepository;
         this.storyRepository = storyRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
+        this.authService = authService;
     }
 
     @Transactional
     public CommentDTO addComment(Long storyId, String commentText) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = authService.getAuthenticatedUserOrThrow();
 
         Story story = storyRepository.findById(storyId)
                 .orElseThrow(() -> new RuntimeException("Story not found"));
@@ -67,11 +62,7 @@ public class CommentService {
 
     @Transactional
     public void deleteComment(Long commentId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = authService.getAuthenticatedUserOrThrow();
 
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
@@ -89,16 +80,9 @@ public class CommentService {
     }
 
     public Page<CommentDTO> getUserComments(Pageable pageable) {
-        User user = getAuthenticatedUser();
+        User user = authService.getAuthenticatedUserOrThrow();
         Page<Comment> comments = commentRepository.findByUserId(user.getId(), pageable);
         return comments.map(comment -> new CommentDTO(comment, comment.getStory()));
     }
 
-    private User getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-    }
 }

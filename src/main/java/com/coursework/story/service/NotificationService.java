@@ -16,11 +16,11 @@ import java.util.stream.Collectors;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
-    private final UserService userService;
+    private final AuthService authService;
 
-    public NotificationService(NotificationRepository notificationRepository, UserService userService) {
+    public NotificationService(NotificationRepository notificationRepository, AuthService authService) {
         this.notificationRepository = notificationRepository;
-        this.userService = userService;
+        this.authService = authService;
     }
 
     public void send(User recipient, String message, NotificationType type, Long targetId) {
@@ -33,7 +33,7 @@ public class NotificationService {
     }
 
     public List<NotificationDTO> getNotifications() {
-        User user = userService.getAuthenticatedUser().orElseThrow(() -> new RuntimeException("User not found"));
+        User user = authService.getAuthenticatedUserOrThrow();
         return user.getNotifications()
                 .stream()
                 .sorted(Comparator.comparing(Notification::getTimestamp).reversed())
@@ -43,8 +43,7 @@ public class NotificationService {
 
     @Transactional
     public void markAsRead(List<Long> notificationIds) {
-        User user = userService.getAuthenticatedUser()
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = authService.getAuthenticatedUserOrThrow();
         notificationRepository.markAsReadByIds(notificationIds, user);
     }
 }
