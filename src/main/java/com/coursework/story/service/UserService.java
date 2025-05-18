@@ -4,9 +4,6 @@ import com.coursework.story.dto.AuthRequest;
 import com.coursework.story.dto.UserDTO;
 import com.coursework.story.model.User;
 import com.coursework.story.repository.UserRepository;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,12 +21,15 @@ public class UserService {
     private final FirebaseStorageService firebaseStorageService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final AuthService authService;
 
-    public UserService(UserRepository userRepository, FirebaseStorageService firebaseStorageService, EmailService emailService) {
+    public UserService(UserRepository userRepository, FirebaseStorageService firebaseStorageService,
+                       EmailService emailService, AuthService authService) {
         this.userRepository = userRepository;
         this.firebaseStorageService = firebaseStorageService;
         this.passwordEncoder = new BCryptPasswordEncoder();
         this.emailService = emailService;
+        this.authService = authService;
     }
 
     public void registerUser(AuthRequest request) {
@@ -101,12 +101,12 @@ public class UserService {
     }
 
     public UserDTO getUserResponse() {
-        User user = getAuthenticatedUser().orElseThrow(() -> new RuntimeException("User not found"));
+        User user = authService.getAuthenticatedUserOrThrow();
         return new UserDTO(user.getUsername(), user.getEmail(), user.getImageUrl());
     }
 
     public UserDTO setUserPicture(MultipartFile file) {
-        User user = getAuthenticatedUser().orElseThrow(() -> new RuntimeException("User not found"));
+        User user = authService.getAuthenticatedUserOrThrow();
         String oldImageUrl = user.getImageUrl();
         String imgUrl = null;
         try {
@@ -126,8 +126,7 @@ public class UserService {
     }
 
     public void changePassword(String currentPassword, String newPassword) {
-        User user = getAuthenticatedUser()
-                .orElseThrow(() -> new RuntimeException("User not authenticated"));
+        User user = authService.getAuthenticatedUserOrThrow();
 
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new RuntimeException("Current password is incorrect");
@@ -139,16 +138,5 @@ public class UserService {
 
     public User findByUsername(String username) {
         return userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
-    }
-
-    public Optional<User> getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof UserDetails userDetails) {
-            String username = userDetails.getUsername();
-            return userRepository.findByUsername(username);
-        }
-
-        return Optional.empty();
     }
 }

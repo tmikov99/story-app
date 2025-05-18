@@ -18,9 +18,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,11 +36,12 @@ public class StoryService {
     private final NotificationService notificationService;
     private final FirebaseStorageService firebaseStorageService;
     private final DraftService draftService;
+    private final AuthService authService;
 
     public StoryService(StoryRepository storyRepository, UserRepository userRepository,
                         PageRepository pageRepository, PlaythroughRepository playthroughRepository,
                         NotificationService notificationService, FirebaseStorageService firebaseStorageService,
-                        DraftService draftService) {
+                        DraftService draftService, AuthService authService) {
         this.storyRepository = storyRepository;
         this.userRepository = userRepository;
         this.pageRepository = pageRepository;
@@ -51,10 +49,11 @@ public class StoryService {
         this.notificationService = notificationService;
         this.firebaseStorageService = firebaseStorageService;
         this.draftService = draftService;
+        this.authService = authService;
     }
 
     public List<StoryDTO> getStories() {
-        Optional<User> user = getAuthenticatedUser();
+        Optional<User> user = authService.getAuthenticatedUser();
         Set<Long> likedIds = user.map(u -> u.getLikedStories()
                         .stream()
                         .map(Story::getId)
@@ -82,7 +81,7 @@ public class StoryService {
     }
 
     public StoryDTO getStoryPreviewById(Long storyId) {
-        Optional<User> user = getAuthenticatedUser();
+        Optional<User> user = authService.getAuthenticatedUser();
         Story story = storyRepository.findById(storyId)
                 .orElseThrow(() -> new NotFoundException("Story not found"));
 
@@ -99,7 +98,7 @@ public class StoryService {
     }
 
     public List<StoryDTO> getStoriesByUser(String username) {
-        Optional<User> user = getAuthenticatedUser();
+        Optional<User> user = authService.getAuthenticatedUser();
         Set<Long> likedIds = user.isPresent() ? user.get().getLikedIds() : Collections.emptySet();
         Set<Long> favoriteIds = user.isPresent() ? user.get().getFavoriteIds() : Collections.emptySet();
         return storyRepository.findAllByUserUsernameOrderByCreatedAt(username).stream()
@@ -113,65 +112,10 @@ public class StoryService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional
-    public void updatePages(Long storyId, List<PageDTO> updatedPages) {
-        Optional<Story> optionalStory = storyRepository.findById(storyId);
-        if (optionalStory.isEmpty()) {
-//            return ResponseEntity.notFound().build();
-            return;
-        }
-
-        Story story = optionalStory.get();
-
-        // Map of updated page IDs (or null for new ones)
-        Set<Long> updatedIds = updatedPages.stream()
-                .map(PageDTO::getId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        // Remove pages that are not in the updated list
-        List<Page> pagesToRemove = story.getPages().stream()
-                .filter(p -> p.getId() != null && !updatedIds.contains(p.getId()))
-                .toList();
-
-        for (Page pageToRemove : pagesToRemove) {
-            pageRepository.delete(pageToRemove);
-        }
-
-        for (PageDTO dto : updatedPages) {
-            Page page;
-
-            if (dto.getId() != null) {
-                // Update existing page
-                page = story.getPages().stream()
-                        .filter(p -> p.getId().equals(dto.getId()))
-                        .findFirst()
-                        .orElseThrow(); // Optional: handle missing ID gracefully
-            } else {
-                // New page
-                page = new Page();
-                page.setStory(story);
-            }
-
-            page.setTitle(dto.getTitle());
-            page.setPageNumber(dto.getPageNumber());
-            page.setParagraphs(dto.getParagraphs());
-//            page.setChoices(dto.getChoices().stream() //TODO: Update along with UI
-//                    .map(c -> new Choice(c.getText(), c.getTargetPage()))
-//                    .toList());
-            page.setPositionX(dto.getPositionX());
-            page.setPositionY(dto.getPositionY());
-
-            pageRepository.save(page);
-        }
-        story.touch();
-        storyRepository.save(story);
-    }
-
     public org.springframework.data.domain.Page<StoryDTO> searchStories(String query, Pageable pageable) {
         Pageable sortedPageable = applyDefaultSortIfMissing(pageable);
 
-        Optional<User> user = getAuthenticatedUser();
+        Optional<User> user = authService.getAuthenticatedUser();
         Set<Long> likedIds = user.map(User::getLikedIds).orElse(Collections.emptySet());
         Set<Long> favoriteIds = user.map(User::getFavoriteIds).orElse(Collections.emptySet());
 
@@ -185,7 +129,7 @@ public class StoryService {
 
         org.springframework.data.domain.Page<Story> page = storyRepository.findAllByStatus(StoryStatus.PUBLISHED, sortedPageable);
 
-        Optional<User> user = getAuthenticatedUser();
+        Optional<User> user = authService.getAuthenticatedUser();
         Set<Long> likedIds = user.map(User::getLikedIds).orElse(Collections.emptySet());
         Set<Long> favoriteIds = user.map(User::getFavoriteIds).orElse(Collections.emptySet());
 
@@ -206,7 +150,7 @@ public class StoryService {
         int end = Math.min(start + pageable.getPageSize(), cachedTrending.size());
         List<Story> paged = cachedTrending.subList(start, end);
 
-        Optional<User> user = getAuthenticatedUser();
+        Optional<User> user = authService.getAuthenticatedUser();
         Set<Long> likedIds = user.map(User::getLikedIds).orElse(Collections.emptySet());
         Set<Long> favoriteIds = user.map(User::getFavoriteIds).orElse(Collections.emptySet());
 
@@ -220,7 +164,7 @@ public class StoryService {
     }
 
     public PaginatedResponse<StoryDTO> getPublishedStoriesByUser(String username, Pageable pageable) {
-        Optional<User> currentUser = getAuthenticatedUser();
+        Optional<User> currentUser = authService.getAuthenticatedUser();
         Set<Long> likedIds = currentUser.map(User::getLikedIds).orElse(Collections.emptySet());
         Set<Long> favoriteIds = currentUser.map(User::getFavoriteIds).orElse(Collections.emptySet());
 
@@ -247,8 +191,7 @@ public class StoryService {
 
     @Transactional
     public StoryDTO saveStory(Story story, MultipartFile coverImg) {
-        User user = getAuthenticatedUser()
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        User user = authService.getAuthenticatedUserOrThrow();
         story.setUser(user);
 
         Story savedStory = storyRepository.save(story);
@@ -272,7 +215,7 @@ public class StoryService {
 
     @Transactional
     public StoryDTO updateStory(Long storyId, StoryDTO updatedStory, MultipartFile coverImg) {
-        User user = getAuthenticatedUser().orElseThrow(() -> new NotFoundException("User not found"));
+        User user = authService.getAuthenticatedUserOrThrow();
 
         Story existingStory = storyRepository.findById(storyId)
                 .orElseThrow(() -> new NotFoundException("Story not found"));
@@ -314,8 +257,7 @@ public class StoryService {
 
     @Transactional
     public int updateStartPageNumber(Long storyId, int startPageNumber) {
-        User user = getAuthenticatedUser()
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        User user = authService.getAuthenticatedUserOrThrow();
 
         Story story = storyRepository.findById(storyId)
                 .orElseThrow(() -> new NotFoundException("Story not found"));
@@ -334,8 +276,7 @@ public class StoryService {
 
     @Transactional
     public StoryDTO copyStoryAsDraft(Long storyId) {
-        User user = getAuthenticatedUser()
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        User user = authService.getAuthenticatedUserOrThrow();
 
         Story original = storyRepository.findById(storyId)
                 .orElseThrow(() -> new NotFoundException("Original story not found"));
@@ -355,8 +296,7 @@ public class StoryService {
 
     @Transactional
     public void deleteStory(Long storyId) {
-        User user = getAuthenticatedUser()
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        User user = authService.getAuthenticatedUserOrThrow();
 
         Story story = storyRepository.findById(storyId)
                 .orElseThrow(() -> new NotFoundException("Story not found"));
@@ -397,7 +337,7 @@ public class StoryService {
 
     @Transactional
     public StoryDTO publishStory(Long storyId) {
-        User user = getAuthenticatedUser().orElseThrow(() -> new NotFoundException("User not found"));
+        User user = authService.getAuthenticatedUserOrThrow();
 
         Story story = storyRepository.findById(storyId)
                 .orElseThrow(() -> new NotFoundException("Story not found"));
@@ -422,7 +362,7 @@ public class StoryService {
 
     @Transactional
     public StoryDTO archiveStory(Long storyId) {
-        User user = getAuthenticatedUser().orElseThrow(() -> new NotFoundException("User not found"));
+        User user = authService.getAuthenticatedUserOrThrow();
 
         Story story = storyRepository.findById(storyId)
                 .orElseThrow(() -> new NotFoundException("Story not found"));
@@ -444,8 +384,7 @@ public class StoryService {
 
     @Transactional
     public LikeResponse toggleLikeStory(Long storyId) {
-        User user = getAuthenticatedUser()
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        User user = authService.getAuthenticatedUserOrThrow();
 
         Story story = storyRepository.findById(storyId)
                 .orElseThrow(() -> new NotFoundException("Story not found"));
@@ -478,8 +417,7 @@ public class StoryService {
 
     @Transactional
     public boolean toggleFavoriteStory(Long storyId) {
-        User user = getAuthenticatedUser()
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        User user = authService.getAuthenticatedUserOrThrow();
 
         Story story = storyRepository.findById(storyId)
                 .orElseThrow(() -> new NotFoundException("Story not found"));
@@ -503,7 +441,7 @@ public class StoryService {
     }
 
     public org.springframework.data.domain.Page<StoryDTO> getLikedStories(Pageable pageable) {
-        User user = getAuthenticatedUser().orElseThrow(() -> new NotFoundException("User not found"));
+        User user = authService.getAuthenticatedUserOrThrow();
         Pageable sortedPageable = applyDefaultSortIfMissing(pageable);
 
         org.springframework.data.domain.Page<Story> page = storyRepository.findStoriesLikedByUserId(user.getId(), sortedPageable);
@@ -515,7 +453,7 @@ public class StoryService {
     }
 
     public org.springframework.data.domain.Page<StoryDTO> getFavoriteStories(Pageable pageable) {
-        User user = getAuthenticatedUser().orElseThrow(() -> new NotFoundException("User not found"));
+        User user = authService.getAuthenticatedUserOrThrow();
         Pageable sortedPageable = applyDefaultSortIfMissing(pageable);
 
         org.springframework.data.domain.Page<Story> page = storyRepository.findStoriesFavoriteByUserId(user.getId(), sortedPageable);
@@ -527,8 +465,7 @@ public class StoryService {
     }
 
     public org.springframework.data.domain.Page<StoryDTO> getUserStories(Pageable pageable) {
-        User user = getAuthenticatedUser()
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        User user = authService.getAuthenticatedUserOrThrow();
 
         Pageable sortedPageable = applyDefaultSortIfMissing(pageable);
 
@@ -538,17 +475,6 @@ public class StoryService {
         Set<Long> favoriteIds = user.getFavoriteIds();
 
         return mapStoriesToDTOs(page, likedIds, favoriteIds);
-    }
-
-    private Optional<User> getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof UserDetails userDetails) {
-            String username = userDetails.getUsername();
-            return userRepository.findByUsername(username);
-        }
-
-        return Optional.empty();
     }
 
     private String getDefaultImageForGenre(Genre genre) {

@@ -133,11 +133,6 @@ public class StoryController {
         return List.of(Genre.values());
     }
 
-    @PutMapping("/pages/{storyId}")
-    public void updatePagesBysStoryId(@PathVariable Long storyId, @RequestBody List<PageDTO> pages) {
-        storyService.updatePages(storyId, pages);
-    }
-
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteStory(@PathVariable Long id) {
         storyService.deleteStory(id);

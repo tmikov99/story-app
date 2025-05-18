@@ -7,11 +7,8 @@ import com.coursework.story.model.StoryStatus;
 import com.coursework.story.model.User;
 import com.coursework.story.repository.PageRepository;
 import com.coursework.story.repository.StoryRepository;
-import com.coursework.story.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,15 +18,14 @@ import java.util.List;
 public class PageService {
 
     private final PageRepository pageRepository;
-    private final UserRepository userRepository;
+    private final AuthService authService;
     private final StoryRepository storyRepository;
-
     private final DraftService draftService;
 
-    public PageService(PageRepository pageRepository, UserRepository userRepository,
+    public PageService(PageRepository pageRepository, AuthService authService,
                        StoryRepository storyRepository, DraftService draftService) {
         this.pageRepository = pageRepository;
-        this.userRepository = userRepository;
+        this.authService = authService;
         this.storyRepository = storyRepository;
         this.draftService = draftService;
     }
@@ -68,7 +64,7 @@ public class PageService {
 
         Story story = page.getStory();
         User author = story.getUser();
-        User currentUser = getAuthenticatedUser();
+        User currentUser = authService.getAuthenticatedUserOrThrow();
 
         if (!author.getId().equals(currentUser.getId())) {
             throw new RuntimeException("You are not allowed to edit this page");
@@ -94,7 +90,7 @@ public class PageService {
         Story story = storyRepository.findById(newPage.getStoryId())
                 .orElseThrow(() -> new EntityNotFoundException("Story not found"));
 
-        User currentUser = getAuthenticatedUser();
+        User currentUser = authService.getAuthenticatedUserOrThrow();
         if (!story.getUser().getId().equals(currentUser.getId())) {
             throw new RuntimeException("You are not allowed to add a page to this story");
         }
@@ -130,7 +126,7 @@ public class PageService {
         Story story = page.getStory();
         User author = story.getUser();
 
-        User currentUser = getAuthenticatedUser();
+        User currentUser = authService.getAuthenticatedUserOrThrow();
 
         if (!author.getId().equals(currentUser.getId())) {
             throw new RuntimeException("You are not allowed to delete this page");
@@ -148,12 +144,5 @@ public class PageService {
         }
 
         pageRepository.delete(page);
-    }
-
-    private User getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }
