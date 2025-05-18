@@ -1,6 +1,7 @@
 package com.coursework.story.controller;
 
 import com.coursework.story.dto.PasswordChangeRequest;
+import com.coursework.story.dto.ResetPasswordRequest;
 import com.coursework.story.dto.UserDTO;
 import com.coursework.story.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -39,5 +40,17 @@ public class UserController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestParam("email") String email) {
+            userService.forgottenPassword(email);
+        return ResponseEntity.ok("Password reset link sent");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        userService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok("Password updated successfully");
     }
 }

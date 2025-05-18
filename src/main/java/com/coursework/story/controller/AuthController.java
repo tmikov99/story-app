@@ -12,8 +12,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,12 +35,15 @@ public class AuthController {
 
     @PostMapping("/login")
     public AuthResponse login(@RequestBody AuthRequest request, HttpServletResponse response) {
-        Authentication authentication = authenticationManager.authenticate(
+        authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
 
         String token = jwtUtil.generateAccessToken(request.getUsername());
         User user = userService.findByUsername(request.getUsername());
+        if (!user.isEmailVerified()) {
+            throw new RuntimeException("Email not verified");
+        }
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
         Cookie cookie = new Cookie("refreshToken", refreshToken.getToken());
@@ -68,5 +72,14 @@ public class AuthController {
         String accessToken = jwtUtil.generateAccessToken(refreshToken.getUser().getUsername());
 
         return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken.getUser()));
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyEmail(@RequestParam("token") String token) {
+        Optional<User> userOpt = userService.verifyUser(token);
+        if (userOpt.isPresent()) {
+            return ResponseEntity.ok("Email verified!");
+        }
+        return ResponseEntity.badRequest().body("Invalid or expired token");
     }
 }

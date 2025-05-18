@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -22,16 +23,21 @@ public class UserService {
     private final UserRepository userRepository;
     private final FirebaseStorageService firebaseStorageService;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
-    public UserService(UserRepository userRepository, FirebaseStorageService firebaseStorageService) {
+    public UserService(UserRepository userRepository, FirebaseStorageService firebaseStorageService, EmailService emailService) {
         this.userRepository = userRepository;
         this.firebaseStorageService = firebaseStorageService;
         this.passwordEncoder = new BCryptPasswordEncoder();
+        this.emailService = emailService;
     }
 
     public void registerUser(AuthRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new RuntimeException("Username already exists! Choose a different one.");
+        }
+        if (userRepository.existsByEmail(request.getUsername())) {
+            throw new RuntimeException("Email already in use!");
         }
 
         User user = new User();
@@ -45,7 +51,52 @@ public class UserService {
         Set<String> roles = new HashSet<>();
         roles.add("USER");
         user.setRoles(roles);
+        String token = UUID.randomUUID().toString();
+        user.setVerificationToken(token);
+        //TODO: Remove after testing
+        System.out.println("Verification token: " + token);
+        user.setEmailVerified(false);
+        userRepository.save(user);
 
+        emailService.sendVerificationEmail(user.getEmail(), token);
+    }
+
+    public Optional<User> verifyUser(String token) {
+        Optional<User> userOpt = userRepository.findByVerificationToken(token);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            user.setEmailVerified(true);
+            user.setVerificationToken(null);
+            userRepository.save(user);
+            return Optional.of(user);
+        }
+        return Optional.empty();
+    }
+
+    public void forgottenPassword(String email) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("Email not found");
+        }
+
+        User user = userOpt.get();
+        String token = UUID.randomUUID().toString();
+        user.setResetToken(token);
+        //TODO: Remove after testing
+        System.out.println("Reset token: " + token);
+        userRepository.save(user);
+        emailService.sendPasswordResetEmail(user.getEmail(), token);
+    }
+
+    public void resetPassword(String token, String newPassword) {
+        Optional<User> userOpt = userRepository.findByResetToken(token);
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("Invalid or expired token");
+        }
+
+        User user = userOpt.get();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setResetToken(null);
         userRepository.save(user);
     }
 
