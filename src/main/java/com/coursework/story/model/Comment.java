@@ -1,5 +1,6 @@
 package com.coursework.story.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -12,6 +13,7 @@ public class Comment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "story_id", nullable = false)
+    @JsonBackReference
     private Story story;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -19,7 +21,7 @@ public class Comment {
     private User user;
 
     @Column(nullable = false, length = 1000)
-    private String text;  // The actual comment
+    private String text;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
