@@ -1,6 +1,9 @@
 package com.coursework.story.service;
 
 import com.coursework.story.dto.PageDTO;
+import com.coursework.story.exception.BadRequestException;
+import com.coursework.story.exception.NotFoundException;
+import com.coursework.story.exception.UnauthorizedException;
 import com.coursework.story.model.Page;
 import com.coursework.story.model.Story;
 import com.coursework.story.model.StoryStatus;
@@ -32,12 +35,12 @@ public class PageService {
 
     public Page getPageById(Long pageId) {
         return pageRepository.findById(pageId)
-                .orElseThrow(() -> new RuntimeException("Page not found"));
+                .orElseThrow(() -> new NotFoundException("Page not found"));
     }
 
     public Page getPageByStoryAndNumber(Long storyId, int pageNumber) {
         return pageRepository.findByStoryIdAndPageNumber(storyId, pageNumber)
-                .orElseThrow(() -> new RuntimeException("Page not found"));
+                .orElseThrow(() -> new NotFoundException("Page not found"));
     }
 
     public List<Page> getPagesByStoryId(Long storyId) {
@@ -60,26 +63,26 @@ public class PageService {
     @Transactional
     public Page updatePage(Long pageId, PageDTO newPage) {
         Page page = pageRepository.findById(pageId)
-                .orElseThrow(() -> new RuntimeException("Page not found"));
+                .orElseThrow(() -> new NotFoundException("Page not found"));
 
         Story story = page.getStory();
         User author = story.getUser();
         User currentUser = authService.getAuthenticatedUserOrThrow();
 
         if (!author.getId().equals(currentUser.getId())) {
-            throw new RuntimeException("You are not allowed to edit this page");
+            throw new UnauthorizedException("You are not allowed to edit this page");
         }
 
         if (story.getStatus() == StoryStatus.PUBLISHED) {
             story = draftService.ensureDraftExists(story);
             page = pageRepository.findByStoryIdAndPageNumber(story.getId(), page.getPageNumber())
-                    .orElseThrow(() -> new RuntimeException("Page not found in draft"));
+                    .orElseThrow(() -> new NotFoundException("Page not found in draft"));
         }
 
         page.setTitle(newPage.getTitle());
         page.setPageNumber(newPage.getPageNumber());
         page.setParagraphs(newPage.getParagraphs());
-        page.setChoices((newPage.getChoices()));
+        page.setChoices(newPage.getChoices());
         page.setPositionX(newPage.getPositionX());
         page.setPositionY(newPage.getPositionY());
         return pageRepository.save(page);
@@ -88,11 +91,11 @@ public class PageService {
     @Transactional
     public PageDTO savePage(PageDTO newPage) {
         Story story = storyRepository.findById(newPage.getStoryId())
-                .orElseThrow(() -> new EntityNotFoundException("Story not found"));
+                .orElseThrow(() -> new NotFoundException("Story not found"));
 
         User currentUser = authService.getAuthenticatedUserOrThrow();
         if (!story.getUser().getId().equals(currentUser.getId())) {
-            throw new RuntimeException("You are not allowed to add a page to this story");
+            throw new UnauthorizedException("You are not allowed to add a page to this story");
         }
 
         if (story.getStatus() == StoryStatus.PUBLISHED) {
@@ -102,7 +105,7 @@ public class PageService {
 
         boolean pageExists = pageRepository.existsByStoryIdAndPageNumber(newPage.getStoryId(), newPage.getPageNumber());
         if (pageExists) {
-            throw new IllegalArgumentException("Page number already exists for this story");
+            throw new BadRequestException("Page number already exists for this story");
         }
 
         Page page = new Page();
@@ -121,7 +124,7 @@ public class PageService {
     @Transactional
     public void deletePage(Long pageId) {
         Page page = pageRepository.findById(pageId)
-                .orElseThrow(() -> new RuntimeException("Page not found"));
+                .orElseThrow(() -> new NotFoundException("Page not found"));
 
         Story story = page.getStory();
         User author = story.getUser();
@@ -129,13 +132,13 @@ public class PageService {
         User currentUser = authService.getAuthenticatedUserOrThrow();
 
         if (!author.getId().equals(currentUser.getId())) {
-            throw new RuntimeException("You are not allowed to delete this page");
+            throw new UnauthorizedException("You are not allowed to delete this page");
         }
 
         if (story.getStatus() == StoryStatus.PUBLISHED) {
             story = draftService.ensureDraftExists(story);
             page = pageRepository.findByStoryIdAndPageNumber(story.getId(), page.getPageNumber())
-                    .orElseThrow(() -> new RuntimeException("Page not found in draft"));
+                    .orElseThrow(() -> new NotFoundException("Page not found in draft"));
         }
 
         if (story.getStartPageNumber() != null && story.getStartPageNumber().equals(page.getPageNumber())) {

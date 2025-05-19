@@ -2,6 +2,8 @@ package com.coursework.story.service;
 
 import com.coursework.story.dto.PageDTO;
 import com.coursework.story.dto.PlaythroughDTO;
+import com.coursework.story.exception.NotFoundException;
+import com.coursework.story.exception.UnauthorizedException;
 import com.coursework.story.model.Page;
 import com.coursework.story.model.Playthrough;
 import com.coursework.story.model.Story;
@@ -24,7 +26,8 @@ public class PlaythroughService {
     private final PageRepository pageRepository;
     private final AuthService authService;
 
-    public PlaythroughService(PlaythroughRepository playthroughRepository, StoryRepository storyRepository, PageRepository pageRepository, AuthService authService) {
+    public PlaythroughService(PlaythroughRepository playthroughRepository, StoryRepository storyRepository,
+                              PageRepository pageRepository, AuthService authService) {
         this.playthroughRepository = playthroughRepository;
         this.storyRepository = storyRepository;
         this.pageRepository = pageRepository;
@@ -34,18 +37,17 @@ public class PlaythroughService {
     @Transactional
     public PlaythroughDTO startPlaythrough(Long storyId) {
         User user = authService.getAuthenticatedUserOrThrow();
-        Story story = storyRepository.findById(storyId).orElseThrow(() -> new RuntimeException("Story not found"));
+        Story story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new NotFoundException("Story not found"));
         playthroughRepository.deactivatePlaythroughsForUserAndStory(user, story);
 
-        boolean isFirstPlaythrough = playthroughRepository
-                .countByUserAndStory(user, story) == 0;
+        boolean isFirstPlaythrough = playthroughRepository.countByUserAndStory(user, story) == 0;
 
         Integer startPageNumber = story.getStartPageNumber();
-        Page startPage = story.getPages()
-                .stream()
+        Page startPage = story.getPages().stream()
                 .filter(p -> p.getPageNumber() == startPageNumber)
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Start page not found"));
+                .orElseThrow(() -> new NotFoundException("Start page not found"));
 
         Playthrough playthrough = new Playthrough();
         playthrough.setUser(user);
@@ -72,7 +74,7 @@ public class PlaythroughService {
         Playthrough playthrough = getPlaythroughOwnedByUser(playthroughId);
 
         Page nextPage = pageRepository.findByStoryIdAndPageNumber(playthrough.getStory().getId(), pageNumber)
-                .orElseThrow(() -> new RuntimeException("Page not found"));
+                .orElseThrow(() -> new NotFoundException("Page not found"));
 
         playthrough.setCurrentPage(nextPage);
         playthrough.getPath().add(pageNumber);
@@ -93,7 +95,8 @@ public class PlaythroughService {
 
     public List<PlaythroughDTO> getPlaythroughsForUserAndStory(Long storyId) {
         User user = authService.getAuthenticatedUserOrThrow();
-        Story story = storyRepository.findById(storyId).orElseThrow(() -> new RuntimeException("Story not found"));
+        Story story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new NotFoundException("Story not found"));
         List<Playthrough> playthroughs = playthroughRepository.findByUserAndStory(user, story);
         return playthroughs.stream().map(PlaythroughDTO::new).toList();
     }
@@ -102,9 +105,7 @@ public class PlaythroughService {
     public void loadPlaythrough(Long playthroughId) {
         User user = authService.getAuthenticatedUserOrThrow();
         Playthrough playthrough = getPlaythroughOwnedByUser(playthroughId);
-        if (playthrough.isActive()) {
-            return;
-        }
+        if (playthrough.isActive()) return;
 
         playthroughRepository.deactivatePlaythroughsForUserAndStory(user, playthrough.getStory());
         playthrough.setActive(true);
@@ -118,14 +119,12 @@ public class PlaythroughService {
 
     public org.springframework.data.domain.Page<PlaythroughDTO> getPaginatedPlaythroughsForUser(String query, Pageable pageable) {
         User user = authService.getAuthenticatedUserOrThrow();
-        org.springframework.data.domain.Page<Playthrough> page;
-        if (query != null && !query.isBlank()) {
-            page = playthroughRepository.searchByUserAndStoryTitle(user, query, pageable);
-        } else {
-            page = playthroughRepository.findByUser(user, pageable);
-        }
+        org.springframework.data.domain.Page<Playthrough> page = (query != null && !query.isBlank())
+                ? playthroughRepository.searchByUserAndStoryTitle(user, query, pageable)
+                : playthroughRepository.findByUser(user, pageable);
         return page.map(PlaythroughDTO::new);
     }
+
     @Transactional
     public void deletePlaythrough(Long playthroughId) {
         Playthrough playthrough = getPlaythroughOwnedByUser(playthroughId);
@@ -134,12 +133,11 @@ public class PlaythroughService {
 
     private Playthrough getPlaythroughOwnedByUser(Long playthroughId) {
         Playthrough playthrough = playthroughRepository.findById(playthroughId)
-                .orElseThrow(() -> new RuntimeException("Playthrough not found"));
+                .orElseThrow(() -> new NotFoundException("Playthrough not found"));
         User currentUser = authService.getAuthenticatedUserOrThrow();
         if (!playthrough.getUser().getId().equals(currentUser.getId())) {
-            throw new RuntimeException("Unauthorized: You do not own this playthrough.");
+            throw new UnauthorizedException("You do not own this playthrough.");
         }
         return playthrough;
     }
-
 }

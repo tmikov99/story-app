@@ -2,6 +2,7 @@ package com.coursework.story.controller;
 
 import com.coursework.story.dto.AuthRequest;
 import com.coursework.story.dto.AuthResponse;
+import com.coursework.story.exception.BadRequestException;
 import com.coursework.story.model.RefreshToken;
 import com.coursework.story.model.User;
 import com.coursework.story.security.JwtUtil;
@@ -42,7 +43,7 @@ public class AuthController {
         String token = jwtUtil.generateAccessToken(request.getUsername());
         User user = userService.findByUsername(request.getUsername());
         if (!user.isEmailVerified()) {
-            throw new RuntimeException("Email not verified");
+            throw new BadRequestException("Email not verified");
         }
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
