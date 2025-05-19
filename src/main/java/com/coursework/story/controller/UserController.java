@@ -43,13 +43,13 @@ public class UserController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@RequestParam("email") String email) {
+    public ResponseEntity<String> forgotPassword(@RequestParam("email") String email) {
             userService.forgottenPassword(email);
         return ResponseEntity.ok("Password reset link sent");
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
         userService.resetPassword(request.getToken(), request.getNewPassword());
         return ResponseEntity.ok("Password updated successfully");
     }

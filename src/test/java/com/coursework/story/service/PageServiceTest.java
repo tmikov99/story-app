@@ -6,6 +6,7 @@ import com.coursework.story.exception.NotFoundException;
 import com.coursework.story.exception.UnauthorizedException;
 import com.coursework.story.model.*;
 import com.coursework.story.repository.PageRepository;
+import com.coursework.story.repository.PlaythroughRepository;
 import com.coursework.story.repository.StoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ class PageServiceTest {
     @Mock
     private StoryRepository storyRepository;
     @Mock
-    private DraftService draftService;
+    private PlaythroughRepository playthroughRepository;
 
     @InjectMocks
     private PageService pageService;
@@ -36,6 +37,7 @@ class PageServiceTest {
     private User user;
     private Story story;
     private Page page;
+    private PageDTO pageDTO;
 
     @BeforeEach
     void setUp() {
@@ -51,13 +53,15 @@ class PageServiceTest {
         page.setId(200L);
         page.setStory(story);
         page.setPageNumber(1);
+
+        pageDTO = new PageDTO(page);
     }
 
     @Test
     void getPageById_success() {
         when(pageRepository.findById(200L)).thenReturn(Optional.of(page));
-        Page result = pageService.getPageById(200L);
-        assertEquals(page, result);
+        PageDTO result = pageService.getPageById(200L);
+        assertEquals(pageDTO, result);
     }
 
     @Test
@@ -69,8 +73,8 @@ class PageServiceTest {
     @Test
     void getPageByStoryAndNumber_success() {
         when(pageRepository.findByStoryIdAndPageNumber(100L, 1)).thenReturn(Optional.of(page));
-        Page result = pageService.getPageByStoryAndNumber(100L, 1);
-        assertEquals(page, result);
+        PageDTO result = pageService.getPageByStoryAndNumber(100L, 1);
+        assertEquals(pageDTO, result);
     }
 
     @Test
@@ -83,8 +87,8 @@ class PageServiceTest {
     void getPagesByStoryId_success() {
         List<Page> pages = List.of(page);
         when(pageRepository.findAllByStoryIdOrderByPageNumber(100L)).thenReturn(pages);
-        List<Page> result = pageService.getPagesByStoryId(100L);
-        assertEquals(pages, result);
+        List<PageDTO> result = pageService.getPagesByStoryId(100L);
+        assertEquals(List.of(pageDTO), result);
     }
 
     @Test
@@ -94,7 +98,7 @@ class PageServiceTest {
         when(pageRepository.findAllByStoryId(100L)).thenReturn(List.of(page));
         List<PageDTO> result = pageService.getPagesMapByStoryId(100L);
         assertEquals(1, result.size());
-        assertEquals(1.0, result.get(0).getPositionX());
+        assertEquals(1.0, result.getFirst().getPositionX());
     }
 
     @Test
@@ -111,7 +115,7 @@ class PageServiceTest {
         when(authService.getAuthenticatedUserOrThrow()).thenReturn(user);
         when(pageRepository.save(any())).thenReturn(page);
 
-        Page result = pageService.updatePage(200L, newPage);
+        PageDTO result = pageService.updatePage(200L, newPage);
         assertEquals("Updated", result.getTitle());
         assertEquals(2, result.getPageNumber());
     }
@@ -165,6 +169,7 @@ class PageServiceTest {
         story.setStartPageNumber(1);
         when(pageRepository.findById(200L)).thenReturn(Optional.of(page));
         when(authService.getAuthenticatedUserOrThrow()).thenReturn(user);
+        when(playthroughRepository.existsByCurrentPage(page)).thenReturn(false);
 
         pageService.deletePage(200L);
 
@@ -181,5 +186,15 @@ class PageServiceTest {
         when(authService.getAuthenticatedUserOrThrow()).thenReturn(user);
 
         assertThrows(UnauthorizedException.class, () -> pageService.deletePage(200L));
+    }
+
+    @Test
+    void deletePage_failsWhenReferencedByPlaythrough() {
+        when(pageRepository.findById(200L)).thenReturn(Optional.of(page));
+        when(authService.getAuthenticatedUserOrThrow()).thenReturn(user);
+        when(playthroughRepository.existsByCurrentPage(page)).thenReturn(true);
+        story.setStatus(StoryStatus.DRAFT);
+
+        assertThrows(BadRequestException.class, () -> pageService.deletePage(200L));
     }
 }

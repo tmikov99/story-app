@@ -4,6 +4,7 @@ import com.coursework.story.model.Choice;
 import com.coursework.story.model.Page;
 
 import java.util.List;
+import java.util.Objects;
 
 public class PageDTO {
 
@@ -39,6 +40,19 @@ public class PageDTO {
         positionX = page.getPositionX();
         positionY = page.getPositionY();
         isEndPage = page.isEndPage();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PageDTO pageDTO = (PageDTO) o;
+        return isEndPage == pageDTO.isEndPage && Objects.equals(id, pageDTO.id) && Objects.equals(title, pageDTO.title) && Objects.equals(storyId, pageDTO.storyId) && Objects.equals(pageNumber, pageDTO.pageNumber) && Objects.equals(paragraphs, pageDTO.paragraphs) && Objects.equals(choices, pageDTO.choices) && Objects.equals(positionX, pageDTO.positionX) && Objects.equals(positionY, pageDTO.positionY);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, title, storyId, pageNumber, paragraphs, choices, positionX, positionY, isEndPage);
     }
 
     public String getTitle() {

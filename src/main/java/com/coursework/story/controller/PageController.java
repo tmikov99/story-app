@@ -20,17 +20,17 @@ public class PageController {
     }
 
     @GetMapping("/{pageId}")
-    public ResponseEntity<Page> getPageById(@PathVariable Long pageId) {
+    public ResponseEntity<PageDTO> getPageById(@PathVariable Long pageId) {
         return ResponseEntity.ok(pageService.getPageById(pageId));
     }
 
     @GetMapping("/{storyId}/page/{pageNumber}")
-    public ResponseEntity<Page> getPageByStoryAndNumber(@PathVariable Long storyId, @PathVariable int pageNumber) {
+    public ResponseEntity<PageDTO> getPageByStoryAndNumber(@PathVariable Long storyId, @PathVariable int pageNumber) {
         return ResponseEntity.ok(pageService.getPageByStoryAndNumber(storyId, pageNumber));
     }
 
     @GetMapping("/story/{storyId}")
-    public ResponseEntity<List<Page>> getPagesByStory(@PathVariable Long storyId) {
+    public ResponseEntity<List<PageDTO>> getPagesByStory(@PathVariable Long storyId) {
         return ResponseEntity.ok(pageService.getPagesByStoryId(storyId));
     }
 
@@ -40,7 +40,7 @@ public class PageController {
     }
 
     @PutMapping("/{pageId}")
-    public ResponseEntity<Page> updatePage(@PathVariable Long pageId, @RequestBody PageDTO newPage) {
+    public ResponseEntity<PageDTO> updatePage(@PathVariable Long pageId, @RequestBody PageDTO newPage) {
         return ResponseEntity.ok(pageService.updatePage(pageId, newPage));
     }
 
