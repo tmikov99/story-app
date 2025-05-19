@@ -3,6 +3,7 @@ package com.coursework.story.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity(name = "pages")
@@ -59,7 +60,7 @@ public class Page {
     }
 
     public void setChoices(List<Choice> choices) {
-        this.choices = choices;
+        this.choices = choices == null ? new ArrayList<>() : choices;
     }
 
     public int getPageNumber() {
