@@ -1,7 +1,6 @@
 package com.coursework.story.service;
 
 import com.coursework.story.dto.LikeResponse;
-import com.coursework.story.dto.PageDTO;
 import com.coursework.story.dto.PaginatedResponse;
 import com.coursework.story.dto.StoryDTO;
 import com.coursework.story.exception.BadRequestException;
@@ -9,7 +8,6 @@ import com.coursework.story.exception.NotFoundException;
 import com.coursework.story.exception.StoryValidationException;
 import com.coursework.story.exception.UnauthorizedException;
 import com.coursework.story.model.*;
-import com.coursework.story.repository.PageRepository;
 import com.coursework.story.repository.PlaythroughRepository;
 import com.coursework.story.repository.StoryRepository;
 import com.coursework.story.repository.UserRepository;
@@ -31,7 +29,6 @@ public class StoryService {
 
     private final StoryRepository storyRepository;
     private final UserRepository userRepository;
-    private final PageRepository pageRepository;
     private final PlaythroughRepository playthroughRepository;
     private final NotificationService notificationService;
     private final FirebaseStorageService firebaseStorageService;
@@ -39,12 +36,11 @@ public class StoryService {
     private final AuthService authService;
 
     public StoryService(StoryRepository storyRepository, UserRepository userRepository,
-                        PageRepository pageRepository, PlaythroughRepository playthroughRepository,
-                        NotificationService notificationService, FirebaseStorageService firebaseStorageService,
+                        PlaythroughRepository playthroughRepository, NotificationService notificationService,
+                        FirebaseStorageService firebaseStorageService,
                         DraftService draftService, AuthService authService) {
         this.storyRepository = storyRepository;
         this.userRepository = userRepository;
-        this.pageRepository = pageRepository;
         this.playthroughRepository = playthroughRepository;
         this.notificationService = notificationService;
         this.firebaseStorageService = firebaseStorageService;
@@ -268,6 +264,17 @@ public class StoryService {
 
         if (story.getStatus() == StoryStatus.PUBLISHED) {
             throw new BadRequestException("Cannot modify a published story.");
+        }
+
+        List<Page> pages = story.getPages();
+        if (pages == null || pages.isEmpty()) {
+            throw new BadRequestException("Story must have at least one page.");
+        }
+
+        boolean pageExists = pages.stream()
+                .anyMatch(page -> page.getPageNumber() == startPageNumber);
+        if (!pageExists) {
+            throw new BadRequestException("Start page number must match one of the story's page numbers.");
         }
 
         story.setStartPageNumber(startPageNumber);

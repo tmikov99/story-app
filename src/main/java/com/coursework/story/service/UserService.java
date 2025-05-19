@@ -39,7 +39,7 @@ public class UserService {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new BadRequestException("Username already exists! Choose a different one.");
         }
-        if (userRepository.existsByEmail(request.getUsername())) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new BadRequestException("Email already in use!");
         }
 
@@ -56,8 +56,6 @@ public class UserService {
         user.setRoles(roles);
         String token = UUID.randomUUID().toString();
         user.setVerificationToken(token);
-        //TODO: Remove after testing
-        System.out.println("Verification token: " + token);
         user.setEmailVerified(false);
         userRepository.save(user);
 
@@ -85,8 +83,6 @@ public class UserService {
         User user = userOpt.get();
         String token = UUID.randomUUID().toString();
         user.setResetToken(token);
-        //TODO: Remove after testing
-        System.out.println("Reset token: " + token);
         userRepository.save(user);
         emailService.sendPasswordResetEmail(user.getEmail(), token);
     }

@@ -26,8 +26,7 @@ public class EmailService {
         message.setTo(to);
         message.setSubject(subject);
         message.setText(body);
-        //TODO: Enable after testing
-        //mailSender.send(message);
+        mailSender.send(message);
     }
 
     public void sendPasswordResetEmail(String to, String token) {
@@ -38,7 +37,6 @@ public class EmailService {
         message.setTo(to);
         message.setSubject("Reset Your Password");
         message.setText(body);
-        //TODO: Enable after testing
-        //mailSender.send(message);
+        mailSender.send(message);
     }
 }
