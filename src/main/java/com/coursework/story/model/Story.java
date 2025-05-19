@@ -61,6 +61,9 @@ public class Story {
     @ManyToMany(mappedBy = "favoriteStories")
     private Set<User> favoriteByUsers;
 
+    @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
+
     private int likes;
 
     private int favorites;
@@ -273,5 +276,13 @@ public class Story {
 
     public void setFavoriteByUsers(Set<User> favoriteByUsers) {
         this.favoriteByUsers = favoriteByUsers;
+    }
+
+    public List<Comment> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
     }
 }
