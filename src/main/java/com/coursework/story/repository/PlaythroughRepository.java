@@ -17,6 +17,7 @@ public interface PlaythroughRepository extends JpaRepository<Playthrough, Long> 
     Page<Playthrough> findByUser(User user, Pageable pageable);
     void deleteByStory(Story story);
     long countByUserAndStory(User user, Story story);
+    boolean existsByCurrentPage(com.coursework.story.model.Page page);
     @Modifying
     @Query("UPDATE Playthrough p SET p.active = false WHERE p.user = :user AND p.story = :story AND p.active = true")
     void deactivatePlaythroughsForUserAndStory(@Param("user") User user, @Param("story") Story story);

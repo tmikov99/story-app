@@ -58,7 +58,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody AuthRequest request) {
+    public ResponseEntity<String> register(@RequestBody AuthRequest request) {
         try {
             userService.registerUser(request);
             return ResponseEntity.ok("User registered successfully!");
@@ -68,7 +68,7 @@ public class AuthController {
     }
 
     @GetMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@CookieValue("refreshToken") String refreshTokenValue) {
+    public ResponseEntity<AuthResponse> refreshToken(@CookieValue("refreshToken") String refreshTokenValue) {
         RefreshToken refreshToken = refreshTokenService.verifyRefreshToken(refreshTokenValue);
         String accessToken = jwtUtil.generateAccessToken(refreshToken.getUser().getUsername());
 
@@ -76,7 +76,7 @@ public class AuthController {
     }
 
     @GetMapping("/verify")
-    public ResponseEntity<?> verifyEmail(@RequestParam("token") String token) {
+    public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
         Optional<User> userOpt = userService.verifyUser(token);
         if (userOpt.isPresent()) {
             return ResponseEntity.ok("Email verified!");

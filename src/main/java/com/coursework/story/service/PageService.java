@@ -9,12 +9,11 @@ import com.coursework.story.model.Story;
 import com.coursework.story.model.StoryStatus;
 import com.coursework.story.model.User;
 import com.coursework.story.repository.PageRepository;
+import com.coursework.story.repository.PlaythroughRepository;
 import com.coursework.story.repository.StoryRepository;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,45 +22,44 @@ public class PageService {
     private final PageRepository pageRepository;
     private final AuthService authService;
     private final StoryRepository storyRepository;
-    private final DraftService draftService;
+    private final PlaythroughRepository playthroughRepository;
 
     public PageService(PageRepository pageRepository, AuthService authService,
-                       StoryRepository storyRepository, DraftService draftService) {
+                       StoryRepository storyRepository, PlaythroughRepository playthroughRepository) {
         this.pageRepository = pageRepository;
         this.authService = authService;
         this.storyRepository = storyRepository;
-        this.draftService = draftService;
+        this.playthroughRepository = playthroughRepository;
     }
 
-    public Page getPageById(Long pageId) {
-        return pageRepository.findById(pageId)
+    public PageDTO getPageById(Long pageId) {
+        Page page = pageRepository.findById(pageId)
                 .orElseThrow(() -> new NotFoundException("Page not found"));
+        return new PageDTO(page);
     }
 
-    public Page getPageByStoryAndNumber(Long storyId, int pageNumber) {
-        return pageRepository.findByStoryIdAndPageNumber(storyId, pageNumber)
+    public PageDTO getPageByStoryAndNumber(Long storyId, int pageNumber) {
+        Page page = pageRepository.findByStoryIdAndPageNumber(storyId, pageNumber)
                 .orElseThrow(() -> new NotFoundException("Page not found"));
+        return new PageDTO(page);
     }
 
-    public List<Page> getPagesByStoryId(Long storyId) {
-        return pageRepository.findAllByStoryIdOrderByPageNumber(storyId);
+    public List<PageDTO> getPagesByStoryId(Long storyId) {
+        List<Page> pages = pageRepository.findAllByStoryIdOrderByPageNumber(storyId);
+        return pages.stream()
+                .map(PageDTO::new)
+                .toList();
     }
 
     public List<PageDTO> getPagesMapByStoryId(Long storyId) {
         List<Page> pages = pageRepository.findAllByStoryId(storyId);
-        List<PageDTO> pagesDTOs = new ArrayList<>();
-        for (Page page : pages) {
-            PageDTO pageDTO = new PageDTO(page);
-            pageDTO.setPositionX(page.getPositionX());
-            pageDTO.setPositionY(page.getPositionY());
-            pagesDTOs.add(pageDTO);
-        }
-
-        return pagesDTOs;
+        return pages.stream()
+                .map(PageDTO::new)
+                .toList();
     }
 
     @Transactional
-    public Page updatePage(Long pageId, PageDTO newPage) {
+    public PageDTO updatePage(Long pageId, PageDTO newPage) {
         Page page = pageRepository.findById(pageId)
                 .orElseThrow(() -> new NotFoundException("Page not found"));
 
@@ -73,10 +71,8 @@ public class PageService {
             throw new UnauthorizedException("You are not allowed to edit this page");
         }
 
-        if (story.getStatus() == StoryStatus.PUBLISHED) {
-            story = draftService.ensureDraftExists(story);
-            page = pageRepository.findByStoryIdAndPageNumber(story.getId(), page.getPageNumber())
-                    .orElseThrow(() -> new NotFoundException("Page not found in draft"));
+        if (story.getStatus() != StoryStatus.DRAFT) {
+            throw new BadRequestException("Pages can only be updated in drafts");
         }
 
         page.setTitle(newPage.getTitle());
@@ -85,7 +81,7 @@ public class PageService {
         page.setChoices(newPage.getChoices());
         page.setPositionX(newPage.getPositionX());
         page.setPositionY(newPage.getPositionY());
-        return pageRepository.save(page);
+        return new PageDTO(pageRepository.save(page));
     }
 
     @Transactional
@@ -98,9 +94,8 @@ public class PageService {
             throw new UnauthorizedException("You are not allowed to add a page to this story");
         }
 
-        if (story.getStatus() == StoryStatus.PUBLISHED) {
-            story = draftService.ensureDraftExists(story);
-            newPage.setStoryId(story.getId());
+        if (story.getStatus() != StoryStatus.DRAFT) {
+            throw new BadRequestException("Pages can only be added to drafts");
         }
 
         boolean pageExists = pageRepository.existsByStoryIdAndPageNumber(newPage.getStoryId(), newPage.getPageNumber());
@@ -127,18 +122,21 @@ public class PageService {
                 .orElseThrow(() -> new NotFoundException("Page not found"));
 
         Story story = page.getStory();
-        User author = story.getUser();
 
+        if (story.getStatus() != StoryStatus.DRAFT) {
+            throw new BadRequestException("Pages can only be deleted from drafts");
+        }
+
+        User author = story.getUser();
         User currentUser = authService.getAuthenticatedUserOrThrow();
 
         if (!author.getId().equals(currentUser.getId())) {
             throw new UnauthorizedException("You are not allowed to delete this page");
         }
 
-        if (story.getStatus() == StoryStatus.PUBLISHED) {
-            story = draftService.ensureDraftExists(story);
-            page = pageRepository.findByStoryIdAndPageNumber(story.getId(), page.getPageNumber())
-                    .orElseThrow(() -> new NotFoundException("Page not found in draft"));
+        boolean isInUse = playthroughRepository.existsByCurrentPage(page);
+        if (isInUse) {
+            throw new BadRequestException("Cannot delete page: it is currently referenced by a playthrough");
         }
 
         if (story.getStartPageNumber() != null && story.getStartPageNumber().equals(page.getPageNumber())) {
