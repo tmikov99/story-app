@@ -1,6 +1,8 @@
 package com.coursework.story.service;
 
 import com.coursework.story.dto.CommentDTO;
+import com.coursework.story.exception.NotFoundException;
+import com.coursework.story.exception.UnauthorizedException;
 import com.coursework.story.model.Comment;
 import com.coursework.story.model.NotificationType;
 import com.coursework.story.model.Story;
@@ -21,16 +23,13 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final StoryRepository storyRepository;
-    private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final AuthService authService;
 
     public CommentService(CommentRepository commentRepository, StoryRepository storyRepository,
-                          UserRepository userRepository, NotificationService notificationService,
-                          AuthService authService) {
+                          NotificationService notificationService, AuthService authService) {
         this.commentRepository = commentRepository;
         this.storyRepository = storyRepository;
-        this.userRepository = userRepository;
         this.notificationService = notificationService;
         this.authService = authService;
     }
@@ -40,15 +39,14 @@ public class CommentService {
         User user = authService.getAuthenticatedUserOrThrow();
 
         Story story = storyRepository.findById(storyId)
-                .orElseThrow(() -> new RuntimeException("Story not found"));
+                .orElseThrow(() -> new NotFoundException("Story not found"));
 
         Comment comment = new Comment();
-
         comment.setStory(story);
         comment.setUser(user);
         comment.setText(commentText);
 
-        if (!Objects.equals(story.getUser().getId(), comment.getUser().getId())) {
+        if (!Objects.equals(story.getUser().getId(), user.getId())) {
             notificationService.send(
                     story.getUser(),
                     "💬 Your story \"" + story.getTitle() + "\" received a new comment!",
@@ -65,10 +63,10 @@ public class CommentService {
         User user = authService.getAuthenticatedUserOrThrow();
 
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new RuntimeException("Comment not found"));
+                .orElseThrow(() -> new NotFoundException("Comment not found"));
 
         if (!comment.getUser().getId().equals(user.getId())) {
-            throw new AccessDeniedException("You are not authorized to delete this comment.");
+            throw new UnauthorizedException("You are not authorized to delete this comment.");
         }
 
         commentRepository.delete(comment);
@@ -84,5 +82,4 @@ public class CommentService {
         Page<Comment> comments = commentRepository.findByUserId(user.getId(), pageable);
         return comments.map(comment -> new CommentDTO(comment, comment.getStory()));
     }
-
 }

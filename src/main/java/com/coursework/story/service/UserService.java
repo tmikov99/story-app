@@ -2,6 +2,9 @@ package com.coursework.story.service;
 
 import com.coursework.story.dto.AuthRequest;
 import com.coursework.story.dto.UserDTO;
+import com.coursework.story.exception.BadRequestException;
+import com.coursework.story.exception.InvalidTokenException;
+import com.coursework.story.exception.NotFoundException;
 import com.coursework.story.model.User;
 import com.coursework.story.repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -34,10 +37,10 @@ public class UserService {
 
     public void registerUser(AuthRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username already exists! Choose a different one.");
+            throw new BadRequestException("Username already exists! Choose a different one.");
         }
         if (userRepository.existsByEmail(request.getUsername())) {
-            throw new RuntimeException("Email already in use!");
+            throw new BadRequestException("Email already in use!");
         }
 
         User user = new User();
@@ -76,7 +79,7 @@ public class UserService {
     public void forgottenPassword(String email) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isEmpty()) {
-            throw new RuntimeException("Email not found");
+            throw new NotFoundException("Email not found");
         }
 
         User user = userOpt.get();
@@ -91,7 +94,7 @@ public class UserService {
     public void resetPassword(String token, String newPassword) {
         Optional<User> userOpt = userRepository.findByResetToken(token);
         if (userOpt.isEmpty()) {
-            throw new RuntimeException("Invalid or expired token");
+            throw new BadRequestException("Invalid or expired reset token");
         }
 
         User user = userOpt.get();
@@ -108,12 +111,13 @@ public class UserService {
     public UserDTO setUserPicture(MultipartFile file) {
         User user = authService.getAuthenticatedUserOrThrow();
         String oldImageUrl = user.getImageUrl();
-        String imgUrl = null;
+        String imgUrl;
         try {
             imgUrl = firebaseStorageService.uploadFile(file, "profile_pics/" + user.getId());
         } catch (IOException e) {
             throw new RuntimeException("Image upload failed", e);
         }
+
         user.setImageUrl(imgUrl);
 
         if (oldImageUrl != null) {
@@ -129,7 +133,7 @@ public class UserService {
         User user = authService.getAuthenticatedUserOrThrow();
 
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-            throw new RuntimeException("Current password is incorrect");
+            throw new BadRequestException("Password is incorrect");
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
@@ -137,6 +141,7 @@ public class UserService {
     }
 
     public User findByUsername(String username) {
-        return userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found"));
     }
 }
