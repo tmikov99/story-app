@@ -3,6 +3,7 @@ package com.coursework.story.controller;
 import com.coursework.story.dto.AuthRequest;
 import com.coursework.story.dto.AuthResponse;
 import com.coursework.story.exception.BadRequestException;
+import com.coursework.story.exception.InvalidTokenException;
 import com.coursework.story.model.RefreshToken;
 import com.coursework.story.model.User;
 import com.coursework.story.security.JwtUtil;
@@ -35,7 +36,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@RequestBody AuthRequest request, HttpServletResponse response) {
+    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request, HttpServletResponse response) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
@@ -54,7 +55,21 @@ public class AuthController {
         cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
         response.addCookie(cookie);
 
-        return new AuthResponse(token, user);
+        return ResponseEntity.ok(new AuthResponse(token, user));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse response, @CookieValue("refreshToken") String refreshTokenValue) {
+        if (refreshTokenValue != null) {
+            refreshTokenService.deleteByToken(refreshTokenValue);
+            Cookie cookie = new Cookie("refreshToken", "");
+            cookie.setHttpOnly(true);
+            cookie.setSecure(true);
+            cookie.setPath("/");
+            cookie.setMaxAge(0); // expire now
+            response.addCookie(cookie);
+        }
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/register")
@@ -68,7 +83,11 @@ public class AuthController {
     }
 
     @GetMapping("/refresh")
-    public ResponseEntity<AuthResponse> refreshToken(@CookieValue("refreshToken") String refreshTokenValue) {
+    public ResponseEntity<AuthResponse> refreshToken(@CookieValue(value = "refreshToken", required = false)  String refreshTokenValue) {
+        if (refreshTokenValue == null) {
+            throw new InvalidTokenException("Missing refresh token cookie.");
+        }
+
         RefreshToken refreshToken = refreshTokenService.verifyRefreshToken(refreshTokenValue);
         String accessToken = jwtUtil.generateAccessToken(refreshToken.getUser().getUsername());
 

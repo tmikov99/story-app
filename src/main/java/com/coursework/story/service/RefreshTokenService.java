@@ -4,6 +4,7 @@ import com.coursework.story.model.RefreshToken;
 import com.coursework.story.model.User;
 import com.coursework.story.repository.RefreshTokenRepository;
 import com.coursework.story.security.JwtUtil;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -27,6 +28,11 @@ public class RefreshTokenService {
         refreshToken.setToken(jwtUtil.generateRefreshToken(user.getUsername()));
         refreshToken.setExpiryDate(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7)); // 7 days
         return refreshTokenRepository.save(refreshToken);
+    }
+
+    @Transactional
+    public void deleteByToken(String token) {
+        refreshTokenRepository.deleteByToken(token);
     }
 
     public RefreshToken verifyRefreshToken(String token) {
