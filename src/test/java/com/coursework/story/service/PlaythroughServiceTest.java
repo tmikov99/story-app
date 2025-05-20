@@ -152,7 +152,7 @@ class PlaythroughServiceTest {
     void getPlaythroughsForUserAndStory_success() {
         when(authService.getAuthenticatedUserOrThrow()).thenReturn(user);
         when(storyRepository.findById(1L)).thenReturn(Optional.of(story));
-        when(playthroughRepository.findByUserAndStory(user, story)).thenReturn(List.of(mockPlaythrough));
+        when(playthroughRepository.findByUserAndStoryOrderByLastVisitedDesc(user, story)).thenReturn(List.of(mockPlaythrough));
 
         List<PlaythroughDTO> result = playthroughService.getPlaythroughsForUserAndStory(1L);
         assertEquals(1, result.size());
