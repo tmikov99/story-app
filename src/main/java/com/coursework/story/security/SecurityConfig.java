@@ -34,24 +34,72 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/story/**").permitAll()
-                        .requestMatchers("/api/page/**").permitAll()
-                        .requestMatchers("/api/notifications/**").permitAll()
-                        .requestMatchers("/api/notifications/**").authenticated()
-                        .requestMatchers("/api/story/create").authenticated()
-                        .requestMatchers("/api/files/**").permitAll()
-                        .requestMatchers("/api/user/**").permitAll()
-                        .requestMatchers(PUT, "/api/page/**").authenticated()
-                        .requestMatchers(DELETE, "/api/page/**").authenticated()
-                        .requestMatchers(GET, "/api/comments/**").permitAll()
-                        .requestMatchers(POST, "/api/comments/**").authenticated()
-                        .requestMatchers(DELETE, "/api/comments/**").authenticated()
-                        .requestMatchers(GET,"/api/playthrough/**").authenticated()
-                        .requestMatchers(PUT,"/api/playthrough/**").authenticated()
-                        .requestMatchers(POST,"/api/playthrough/**").authenticated()
-                        .requestMatchers(PATCH,"/api/playthrough/**").authenticated()
-                        .requestMatchers(DELETE,"/api/playthrough/**").authenticated()
+                        //Non-authenticated
+                        .requestMatchers(POST, "/api/auth/login").permitAll()
+                        .requestMatchers(POST, "/api/auth/logout").permitAll()
+                        .requestMatchers(POST, "/api/auth/register").permitAll()
+                        .requestMatchers(GET, "/api/auth/refresh").permitAll()
+                        .requestMatchers(GET, "/api/auth/verify").permitAll()
+
+                        .requestMatchers(GET, "/api/user/{username}").permitAll()
+                        .requestMatchers(POST, "/api/user/forgot-password").permitAll()
+                        .requestMatchers(POST, "/api/user/reset-password").permitAll()
+
+                        .requestMatchers(GET, "/api/story/genres").permitAll()
+                        .requestMatchers(GET, "/api/comments/story/{storyId}").permitAll()
+
+                        //Fully authenticated
+                        .requestMatchers(GET, "/api/user").authenticated()
+                        .requestMatchers(POST, "/api/user/picture").authenticated()
+                        .requestMatchers(PUT, "/api/user/password").authenticated()
+
+                        .requestMatchers(GET, "/api/story/liked").authenticated()
+                        .requestMatchers(GET, "/api/story/favorite").authenticated()
+                        .requestMatchers(GET, "/api/story/mine").authenticated()
+                        .requestMatchers(POST, "/api/story/create").authenticated()
+                        .requestMatchers(PUT, "/api/story/update").authenticated()
+                        .requestMatchers(PATCH, "/api/story/{storyId}/start-page").authenticated()
+                        .requestMatchers(POST, "/api/story/copyAsDraft/{storyId}").authenticated()
+                        .requestMatchers(PUT, "/api/story/publish/{storyId}").authenticated()
+                        .requestMatchers(PUT, "/api/story/archive/{storyId}").authenticated()
+                        .requestMatchers(DELETE, "/api/story/{storyId}").authenticated()
+                        .requestMatchers(POST, "/api/story/like/{storyId}").authenticated()
+                        .requestMatchers(POST, "/api/story/favorite/{storyId}").authenticated()
+
+                        .requestMatchers(POST, "/api/playthrough/start/{storyId}").authenticated()
+                        .requestMatchers(PATCH, "/api/playthrough/{playthroughId}/choose/{nextPage}").authenticated()
+                        .requestMatchers(GET, "/api/playthrough/{playthroughId}").authenticated()
+                        .requestMatchers(GET, "/api/playthrough/story/{storyId}").authenticated()
+                        .requestMatchers(GET, "/api/playthrough/{playthroughId}/currentPage").authenticated()
+                        .requestMatchers(POST, "/api/playthrough/{playthroughId}/load").authenticated()
+                        .requestMatchers(GET, "/api/playthrough").authenticated()
+                        .requestMatchers(DELETE, "/api/playthrough/{playthroughId}").authenticated()
+
+                        .requestMatchers(PUT, "/api/page/{pageId}").authenticated()
+                        .requestMatchers(POST, "/api/page/create").authenticated()
+                        .requestMatchers(DELETE, "/api/page/{pageId}").authenticated()
+
+                        .requestMatchers(GET, "/api/notifications").authenticated()
+                        .requestMatchers(PUT, "/api/notifications/read").authenticated()
+
+                        .requestMatchers(POST, "/api/comments/story/{storyId}").authenticated()
+                        .requestMatchers(DELETE, "/api/comments/{commentId}").authenticated()
+                        .requestMatchers(GET, "/api/comments/mine").authenticated()
+
+                        //Optional authentication
+                        .requestMatchers(GET, "/api/story").permitAll()
+                        .requestMatchers(GET, "/api/story/trending").permitAll()
+                        .requestMatchers(GET, "/api/story/{storyId}").permitAll()
+                        .requestMatchers(GET, "/api/story/preview/{storyId}").permitAll()
+                        .requestMatchers(GET, "/api/story/user/{username}").permitAll()
+                        .requestMatchers(GET, "/api/story/user/{username}/stories").permitAll()
+
+                        .requestMatchers(GET, "/api/page/{pageId}").permitAll()
+                        .requestMatchers(GET, "/api/page/{storyId}/page/{pageNumber}").permitAll()
+                        .requestMatchers(GET, "/api/page/story/{storyId}").permitAll()
+                        .requestMatchers(GET, "/api/page/story/{storyId}/map").permitAll()
+
+                        //Default fallback
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

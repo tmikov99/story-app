@@ -51,6 +51,12 @@ public class StoryService {
     public StoryDTO getStoryById(Long storyId) {
         Story story = storyRepository.findById(storyId)
                 .orElseThrow(() -> new NotFoundException("Story not found"));
+        if (story.getStatus() == StoryStatus.DRAFT) {
+            Optional<User> user = authService.getAuthenticatedUser();
+            if (user.isEmpty() || !story.getUser().getId().equals(user.get().getId())) {
+                throw new UnauthorizedException("Unauthorized access to draft story");
+            }
+        }
         return new StoryDTO(story, story.getPages());
     }
 
