@@ -48,28 +48,6 @@ public class StoryService {
         this.authService = authService;
     }
 
-    public List<StoryDTO> getStories() {
-        Optional<User> user = authService.getAuthenticatedUser();
-        Set<Long> likedIds = user.map(u -> u.getLikedStories()
-                        .stream()
-                        .map(Story::getId)
-                        .collect(Collectors.toSet()))
-                .orElse(Collections.emptySet());
-        Set<Long> favoriteIds = user.map(u -> u.getFavoriteStories()
-                        .stream()
-                        .map(Story::getId)
-                        .collect(Collectors.toSet()))
-                .orElse(Collections.emptySet());
-        return storyRepository.findAll().stream()
-                .map(story -> {
-                    StoryDTO dto = new StoryDTO(story);
-                    dto.setLiked(likedIds.contains(story.getId()));
-                    dto.setFavorite(favoriteIds.contains(story.getId()));
-                    return dto;
-                })
-                .collect(Collectors.toList());
-    }
-
     public StoryDTO getStoryById(Long storyId) {
         Story story = storyRepository.findById(storyId)
                 .orElseThrow(() -> new NotFoundException("Story not found"));
@@ -135,7 +113,7 @@ public class StoryService {
 //    @Cacheable("trendingStories")
     public List<Story> getTrendingStoriesRaw() {
         LocalDateTime cutoff = LocalDateTime.now().minusDays(7);
-        Pageable limit = PageRequest.of(0, 100); // Cache top 100, for example
+        Pageable limit = PageRequest.of(0, 100);
         return storyRepository.findTrendingStories(cutoff, limit).getContent();
     }
 
@@ -217,7 +195,7 @@ public class StoryService {
                 .orElseThrow(() -> new NotFoundException("Story not found"));
 
         if (!existingStory.getUser().equals(user)) {
-            throw new UnauthorizedException("Unauthorized");
+            throw new UnauthorizedException("Unauthorized to update this story");
         }
 
         if (existingStory.getStatus() == StoryStatus.PUBLISHED) {
@@ -259,7 +237,7 @@ public class StoryService {
                 .orElseThrow(() -> new NotFoundException("Story not found"));
 
         if (!story.getUser().equals(user)) {
-            throw new UnauthorizedException("Unauthorized");
+            throw new UnauthorizedException("Unauthorized to update story start page");
         }
 
         if (story.getStatus() == StoryStatus.PUBLISHED) {
@@ -350,7 +328,7 @@ public class StoryService {
                 .orElseThrow(() -> new NotFoundException("Story not found"));
 
         if (!story.getUser().equals(user)) {
-            throw new UnauthorizedException("Unauthorized");
+            throw new UnauthorizedException("Unauthorized to publish this story");
         }
 
         if (story.getStatus() == StoryStatus.PUBLISHED) {
@@ -375,7 +353,7 @@ public class StoryService {
                 .orElseThrow(() -> new NotFoundException("Story not found"));
 
         if (!story.getUser().equals(user)) {
-            throw new UnauthorizedException("Unauthorized");
+            throw new UnauthorizedException("Unauthorized to archive this story");
         }
 
         if (story.getStatus() != StoryStatus.PUBLISHED) {
