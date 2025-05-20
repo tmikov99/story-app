@@ -139,6 +139,13 @@ public class PageService {
             throw new BadRequestException("Cannot delete page: it is currently referenced by a playthrough");
         }
 
+        List<Page> pagesInStory = pageRepository.findAllByStoryId(story.getId());
+        for (Page p : pagesInStory) {
+            if (p.getChoices() != null && p.getChoices().removeIf(choice -> choice.getTargetPage().equals(page.getPageNumber()))) {
+                pageRepository.save(p);
+            }
+        }
+
         if (story.getStartPageNumber() != null && story.getStartPageNumber().equals(page.getPageNumber())) {
             story.setStartPageNumber(null);
             storyRepository.save(story);
