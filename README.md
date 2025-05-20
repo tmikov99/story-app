@@ -104,14 +104,6 @@ JWT access tokens are returned in the response body, while refresh tokens are st
 
 ---
 
-## 🖼️ File Upload
-
-- **Upload Thumbnail**: `POST /api/files/upload-thumbnail`
-
-> Note: Files are uploaded to **Firebase Cloud Storage** under the `thumbnails/` and `profile_pics/` directories.
-
----
-
 ## 🛠️ Tech Stack
 
 - **Java 21**
