@@ -179,6 +179,27 @@ class PageServiceTest {
     }
 
     @Test
+    void deletePage_deletesLinkedChoices() {
+        story.setStartPageNumber(1);
+        Page pageToDelete = new Page();
+        pageToDelete.setId(100L);
+        pageToDelete.setStory(story);
+        pageToDelete.setPageNumber(2);
+        page.setChoices(new ArrayList<>(List.of(new Choice("choice_text", 2))));
+
+        when(pageRepository.findById(100L)).thenReturn(Optional.of(pageToDelete));
+        when(pageRepository.findAllByStoryId(100L)).thenReturn(List.of(page, pageToDelete));
+        when(authService.getAuthenticatedUserOrThrow()).thenReturn(user);
+        when(playthroughRepository.existsByCurrentPage(pageToDelete)).thenReturn(false);
+
+        pageService.deletePage(100L);
+
+        verify(pageRepository).save(page);
+        verify(pageRepository).delete(pageToDelete);
+        assertEquals(page.getChoices(), Collections.emptyList());
+    }
+
+    @Test
     void deletePage_unauthorized() {
         story.setUser(new User() {{ setId(2L); }});
 
