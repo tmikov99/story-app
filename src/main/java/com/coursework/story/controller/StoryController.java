@@ -68,7 +68,7 @@ public class StoryController {
         return storyService.getStoryPreviewById(storyId);
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/user/{username}")
     public List<StoryDTO> getStoriesByUser(@PathVariable String username) {
         return storyService.getStoriesByUser(username);
     }
@@ -133,9 +133,9 @@ public class StoryController {
         return List.of(Genre.values());
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteStory(@PathVariable Long id) {
-        storyService.deleteStory(id);
+    @DeleteMapping("/{storyId}")
+    public ResponseEntity<Void> deleteStory(@PathVariable Long storyId) {
+        storyService.deleteStory(storyId);
         return ResponseEntity.noContent().build();
     }
 

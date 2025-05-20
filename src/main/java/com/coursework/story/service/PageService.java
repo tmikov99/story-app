@@ -15,6 +15,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PageService {
@@ -35,17 +36,22 @@ public class PageService {
     public PageDTO getPageById(Long pageId) {
         Page page = pageRepository.findById(pageId)
                 .orElseThrow(() -> new NotFoundException("Page not found"));
+        checkDraftAccess(page.getStory());
         return new PageDTO(page);
     }
 
     public PageDTO getPageByStoryAndNumber(Long storyId, int pageNumber) {
         Page page = pageRepository.findByStoryIdAndPageNumber(storyId, pageNumber)
                 .orElseThrow(() -> new NotFoundException("Page not found"));
+        checkDraftAccess(page.getStory());
         return new PageDTO(page);
     }
 
     public List<PageDTO> getPagesByStoryId(Long storyId) {
         List<Page> pages = pageRepository.findAllByStoryIdOrderByPageNumber(storyId);
+        if (!pages.isEmpty()) {
+            checkDraftAccess(pages.getFirst().getStory());
+        }
         return pages.stream()
                 .map(PageDTO::new)
                 .toList();
@@ -53,6 +59,9 @@ public class PageService {
 
     public List<PageDTO> getPagesMapByStoryId(Long storyId) {
         List<Page> pages = pageRepository.findAllByStoryId(storyId);
+        if (!pages.isEmpty()) {
+            checkDraftAccess(pages.getFirst().getStory());
+        }
         return pages.stream()
                 .map(PageDTO::new)
                 .toList();
@@ -152,5 +161,14 @@ public class PageService {
         }
 
         pageRepository.delete(page);
+    }
+
+    private void checkDraftAccess(Story story) {
+        if (story.getStatus() == StoryStatus.DRAFT) {
+            Optional<User> user = authService.getAuthenticatedUser();
+            if (user.isEmpty() || !story.getUser().getId().equals(user.get().getId())) {
+                throw new UnauthorizedException("Unauthorized access to draft story");
+            }
+        }
     }
 }
