@@ -97,7 +97,7 @@ public class PlaythroughService {
         User user = authService.getAuthenticatedUserOrThrow();
         Story story = storyRepository.findById(storyId)
                 .orElseThrow(() -> new NotFoundException("Story not found"));
-        List<Playthrough> playthroughs = playthroughRepository.findByUserAndStory(user, story);
+        List<Playthrough> playthroughs = playthroughRepository.findByUserAndStoryOrderByLastVisitedDesc(user, story);
         return playthroughs.stream().map(PlaythroughDTO::new).toList();
     }
 
@@ -109,6 +109,7 @@ public class PlaythroughService {
 
         playthroughRepository.deactivatePlaythroughsForUserAndStory(user, playthrough.getStory());
         playthrough.setActive(true);
+        playthrough.setLastVisited(LocalDateTime.now());
         playthroughRepository.save(playthrough);
     }
 

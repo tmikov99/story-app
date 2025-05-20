@@ -14,6 +14,7 @@ import java.util.List;
 
 public interface PlaythroughRepository extends JpaRepository<Playthrough, Long> {
     List<Playthrough> findByUserAndStory(User user, Story story);
+    List<Playthrough> findByUserAndStoryOrderByLastVisitedDesc(User user, Story story);
     Page<Playthrough> findByUser(User user, Pageable pageable);
     void deleteByStory(Story story);
     long countByUserAndStory(User user, Story story);
