@@ -38,7 +38,7 @@ public class DraftService {
             page.setPageNumber(p.getPageNumber());
             page.setParagraphs(new ArrayList<>(p.getParagraphs()));
             page.setChoices(p.getChoices().stream()
-                    .map(c -> new Choice(c.getText(), c.getTargetPage()))
+                    .map(Choice::new)
                     .collect(Collectors.toList()));
             page.setPositionX(p.getPositionX());
             page.setPositionY(p.getPositionY());

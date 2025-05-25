@@ -3,6 +3,7 @@ package com.coursework.story.controller;
 import com.coursework.story.dto.PageDTO;
 import com.coursework.story.dto.PaginatedResponse;
 import com.coursework.story.dto.PlaythroughDTO;
+import com.coursework.story.dto.StatCheckResult;
 import com.coursework.story.service.PlaythroughService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +29,16 @@ public class PlaythroughController {
     @PatchMapping("/{playthroughId}/choose/{nextPage}")
     public ResponseEntity<PageDTO> updatePlaythrough(@PathVariable Long playthroughId, @PathVariable int nextPage) {
         return ResponseEntity.ok(playthroughService.choosePage(playthroughId, nextPage));
+    }
+
+    @PostMapping("/{playthroughId}/choice/{choiceId}")
+    public ResponseEntity<PlaythroughDTO> resolveChoice(@PathVariable Long playthroughId, @PathVariable Long choiceId) {
+        return ResponseEntity.ok(playthroughService.resolveChoice(playthroughId, choiceId));
+    }
+
+    @GetMapping("/{playthroughId}/testLuck")
+    public ResponseEntity<StatCheckResult> testPlayerLuck(@PathVariable Long playthroughId) {
+        return ResponseEntity.ok(playthroughService.testPlayerLuck(playthroughId));
     }
 
     @GetMapping("/{playthroughId}")
