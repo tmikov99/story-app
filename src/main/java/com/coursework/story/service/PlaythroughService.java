@@ -2,12 +2,12 @@ package com.coursework.story.service;
 
 import com.coursework.story.dto.PageDTO;
 import com.coursework.story.dto.PlaythroughDTO;
+import com.coursework.story.dto.StatCheckResult;
+import com.coursework.story.exception.BadRequestException;
 import com.coursework.story.exception.NotFoundException;
 import com.coursework.story.exception.UnauthorizedException;
-import com.coursework.story.model.Page;
-import com.coursework.story.model.Playthrough;
-import com.coursework.story.model.Story;
-import com.coursework.story.model.User;
+import com.coursework.story.model.*;
+import com.coursework.story.repository.ChoiceRepository;
 import com.coursework.story.repository.PageRepository;
 import com.coursework.story.repository.PlaythroughRepository;
 import com.coursework.story.repository.StoryRepository;
@@ -18,19 +18,23 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+import java.util.stream.IntStream;
 
 @Service
 public class PlaythroughService {
     private final PlaythroughRepository playthroughRepository;
     private final StoryRepository storyRepository;
     private final PageRepository pageRepository;
+    private final ChoiceRepository choiceRepository;
     private final AuthService authService;
 
     public PlaythroughService(PlaythroughRepository playthroughRepository, StoryRepository storyRepository,
-                              PageRepository pageRepository, AuthService authService) {
+                              PageRepository pageRepository, ChoiceRepository choiceRepository, AuthService authService) {
         this.playthroughRepository = playthroughRepository;
         this.storyRepository = storyRepository;
         this.pageRepository = pageRepository;
+        this.choiceRepository = choiceRepository;
         this.authService = authService;
     }
 
@@ -58,6 +62,13 @@ public class PlaythroughService {
         playthrough.setCompleted(false);
         playthrough.setStartedAt(LocalDateTime.now());
         playthrough.setLastVisited(LocalDateTime.now());
+        //TODO: Add custom stats/presets
+        playthrough.setStats(generateRandomStats());
+
+        boolean luckRequired = startPage.getChoices().stream()
+                .anyMatch(Choice::getRequiresLuckCheck);
+        playthrough.setLuckRequired(luckRequired);
+        playthrough.setLuckPassed(false);
 
         Playthrough savedPlaythrough = playthroughRepository.save(playthrough);
 
@@ -88,9 +99,64 @@ public class PlaythroughService {
         return new PageDTO(nextPage);
     }
 
+    @Transactional
+    public PlaythroughDTO resolveChoice(Long playthroughId, Long choiceId) {
+        Playthrough playthrough = getPlaythroughOwnedByUser(playthroughId);
+        Choice choice = choiceRepository.findByIdAndPage(choiceId, playthrough.getCurrentPage())
+                .orElseThrow(() -> new NotFoundException("Choice not present on page"));
+
+        if (playthrough.isLuckRequired()) {
+            throw new BadRequestException("Luck check is not completed, perform the luck check");
+        }
+
+        if (choice.getRequiresLuckCheck() && !playthrough.isLuckPassed()) {
+            throw new BadRequestException("Required luck check failed, select a different choice");
+        }
+
+        Page nextPage = pageRepository.findByStoryIdAndPageNumber(playthrough.getStory().getId(), choice.getTargetPage())
+                .orElseThrow(() -> new NotFoundException("Page not found in story"));
+
+        playthrough.setCurrentPage(nextPage);
+        playthrough.getPath().add(choice.getTargetPage());
+        playthrough.setLastVisited(LocalDateTime.now());
+
+        if (nextPage.isEndPage()) {
+            playthrough.setCompleted(true);
+        }
+
+        boolean luckRequired = nextPage.getChoices().stream()
+                .anyMatch(Choice::getRequiresLuckCheck);
+
+        playthrough.setLuckRequired(luckRequired);
+        playthrough.setLuckPassed(false);
+
+        playthroughRepository.save(playthrough);
+
+        return new PlaythroughDTO(playthrough, nextPage);
+    }
+
+    public StatCheckResult testPlayerLuck(Long playthroughId) {
+        Playthrough playthrough = getPlaythroughOwnedByUser(playthroughId);
+        if (!playthrough.isLuckRequired()) {
+            throw new BadRequestException("No luck check present, refresh page to get updated playthrough data");
+        }
+
+        int playerLuck = playthrough.getStats().getLuck();
+        int diceRoll = rollDice(2);
+        boolean checkPassed = diceRoll <= playerLuck;
+
+        playthrough.getStats().setLuck(playerLuck - 1);
+        playthrough.setLuckPassed(checkPassed);
+        playthrough.setLuckRequired(false);
+
+        Playthrough savedPlaythrough = playthroughRepository.save(playthrough);
+
+        return new StatCheckResult(diceRoll, checkPassed, savedPlaythrough);
+    }
+
     public PlaythroughDTO getPlaythroughById(Long playthroughId) {
         Playthrough playthrough = getPlaythroughOwnedByUser(playthroughId);
-        return new PlaythroughDTO(playthrough);
+        return new PlaythroughDTO(playthrough, playthrough.getCurrentPage());
     }
 
     public List<PlaythroughDTO> getPlaythroughsForUserAndStory(Long storyId) {
@@ -140,5 +206,21 @@ public class PlaythroughService {
             throw new UnauthorizedException("You do not own this playthrough.");
         }
         return playthrough;
+    }
+
+    private int rollDice(int number) {
+        Random random = new Random();
+        return IntStream.range(0, number)
+                .map(i -> random.nextInt(6) + 1)
+                .sum();
+    }
+
+    private PlayerStats generateRandomStats() {
+        Random rand = new Random();
+        int skill = 6 + rollDice(1);    // 1d6 + 6
+        int stamina = 2 * (6 + rollDice(1)); // 2d6 + 12
+        int luck = 6 + rollDice(1);     // 1d6 + 6
+
+        return new PlayerStats(skill, stamina, luck);
     }
 }

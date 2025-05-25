@@ -1,6 +1,7 @@
 package com.coursework.story.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -28,10 +29,13 @@ public class Page {
     @Column(name = "paragraph", length = 2000)
     private List<String> paragraphs;
 
-    @ElementCollection
-    @CollectionTable(name = "page_choices", joinColumns = @JoinColumn(name = "page_id"))
-    @Column(name = "choice")
-    private List<Choice> choices;
+    @OneToMany(mappedBy = "page", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Choice> choices = new ArrayList<>();
+
+    private Integer deltaSkill;
+    private Integer deltaStamina;
+    private Integer deltaLuck;
 
     @Column(name = "position_x")
     private Double positionX;
@@ -59,8 +63,14 @@ public class Page {
         return choices;
     }
 
-    public void setChoices(List<Choice> choices) {
-        this.choices = choices == null ? new ArrayList<>() : choices;
+    public void setChoices(List<Choice> newChoices) {
+        this.choices.clear();
+        if (newChoices != null) {
+            for (Choice choice : newChoices) {
+                choice.setPage(this);
+                this.choices.add(choice);
+            }
+        }
     }
 
     public Integer getPageNumber() {
@@ -91,6 +101,11 @@ public class Page {
         return choices == null || choices.isEmpty();
     }
 
+    public boolean isLuckRequired() {
+        return choices != null && choices.stream()
+                .anyMatch(Choice::getRequiresLuckCheck);
+    }
+
     public Double getPositionX() {
         return positionX;
     }
@@ -105,5 +120,29 @@ public class Page {
 
     public void setPositionY(Double positionY) {
         this.positionY = positionY;
+    }
+
+    public Integer getDeltaSkill() {
+        return deltaSkill;
+    }
+
+    public void setDeltaSkill(Integer deltaSkill) {
+        this.deltaSkill = deltaSkill;
+    }
+
+    public Integer getDeltaStamina() {
+        return deltaStamina;
+    }
+
+    public void setDeltaStamina(Integer deltaStamina) {
+        this.deltaStamina = deltaStamina;
+    }
+
+    public Integer getDeltaLuck() {
+        return deltaLuck;
+    }
+
+    public void setDeltaLuck(Integer deltaLuck) {
+        this.deltaLuck = deltaLuck;
     }
 }

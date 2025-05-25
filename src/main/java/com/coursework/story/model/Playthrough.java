@@ -32,8 +32,12 @@ public class Playthrough {
     private LocalDateTime startedAt;
 
     private boolean completed;
-
     private boolean active;
+    private boolean luckRequired;
+    private boolean luckPassed;
+
+    @Embedded
+    private PlayerStats stats;
 
     public Long getId() {
         return id;
@@ -105,5 +109,29 @@ public class Playthrough {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public PlayerStats getStats() {
+        return stats;
+    }
+
+    public void setStats(PlayerStats stats) {
+        this.stats = stats;
+    }
+
+    public boolean isLuckRequired() {
+        return luckRequired;
+    }
+
+    public void setLuckRequired(boolean luckRequired) {
+        this.luckRequired = luckRequired;
+    }
+
+    public boolean isLuckPassed() {
+        return luckPassed;
+    }
+
+    public void setLuckPassed(boolean luckPassed) {
+        this.luckPassed = luckPassed;
     }
 }

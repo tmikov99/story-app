@@ -26,11 +26,26 @@ public class PageDTO {
 
     private boolean isEndPage;
 
+    private boolean luckRequired;
+
 
     public PageDTO() {
     }
 
     public PageDTO(Page page) {
+        id = page.getId();
+        title = page.getTitle();
+        storyId = page.getStory().getId();
+        pageNumber = page.getPageNumber();
+        paragraphs = page.getParagraphs();
+        choices = page.getChoices();
+        positionX = page.getPositionX();
+        positionY = page.getPositionY();
+        isEndPage = page.isEndPage();
+        luckRequired = page.isLuckRequired();
+    }
+
+    public PageDTO(Page page, boolean luckRequired) {
         id = page.getId();
         title = page.getTitle();
         storyId = page.getStory().getId();
@@ -125,5 +140,13 @@ public class PageDTO {
 
     public void setEndPage(boolean endPage) {
         isEndPage = endPage;
+    }
+
+    public boolean isLuckRequired() {
+        return luckRequired;
+    }
+
+    public void setLuckRequired(boolean luckRequired) {
+        this.luckRequired = luckRequired;
     }
 }

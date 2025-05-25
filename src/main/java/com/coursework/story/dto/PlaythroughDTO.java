@@ -1,5 +1,7 @@
 package com.coursework.story.dto;
 
+import com.coursework.story.model.Page;
+import com.coursework.story.model.PlayerStats;
 import com.coursework.story.model.Playthrough;
 
 import java.time.LocalDateTime;
@@ -13,9 +15,13 @@ public class PlaythroughDTO {
     private List<Integer> path;
     private LocalDateTime lastVisited;
     private LocalDateTime startedAt;
+    private PageDTO page;
     private StoryDTO story;
     private Boolean completed;
     private Boolean active;
+    private PlayerStats stats;
+    private Boolean luckRequired;
+    private Boolean luckPassed;
 
     public PlaythroughDTO(Playthrough playthrough) {
         id = playthrough.getId();
@@ -25,11 +31,33 @@ public class PlaythroughDTO {
         startedAt = playthrough.getStartedAt();
         completed = playthrough.isCompleted();
         active = playthrough.isActive();
+        stats = playthrough.getStats();
+        luckRequired = playthrough.isLuckRequired();
+        luckPassed = playthrough.isLuckPassed();
         story = new StoryDTO();
         story.setId(playthrough.getStory().getId());
         story.setTitle(playthrough.getStory().getTitle());
         story.setPageCount(playthrough.getStory().getPageCount());
         story.setCoverImageUrl(playthrough.getStory().getCoverImageUrl());
+    }
+
+    public PlaythroughDTO(Playthrough playthrough, Page page) {
+        id = playthrough.getId();
+        currentPage = playthrough.getCurrentPage().getPageNumber();
+        path = playthrough.getPath();
+        lastVisited = playthrough.getLastVisited();
+        startedAt = playthrough.getStartedAt();
+        completed = playthrough.isCompleted();
+        active = playthrough.isActive();
+        stats = playthrough.getStats();
+        luckRequired = playthrough.isLuckRequired();
+        luckPassed = playthrough.isLuckPassed();
+        story = new StoryDTO();
+        story.setId(playthrough.getStory().getId());
+        story.setTitle(playthrough.getStory().getTitle());
+        story.setPageCount(playthrough.getStory().getPageCount());
+        story.setCoverImageUrl(playthrough.getStory().getCoverImageUrl());
+        this.page = new PageDTO(page);
     }
 
     public Long getId() {
@@ -102,5 +130,37 @@ public class PlaythroughDTO {
 
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    public PlayerStats getStats() {
+        return stats;
+    }
+
+    public void setStats(PlayerStats stats) {
+        this.stats = stats;
+    }
+
+    public PageDTO getPage() {
+        return page;
+    }
+
+    public void setPage(PageDTO page) {
+        this.page = page;
+    }
+
+    public Boolean getLuckRequired() {
+        return luckRequired;
+    }
+
+    public void setLuckRequired(Boolean luckRequired) {
+        this.luckRequired = luckRequired;
+    }
+
+    public Boolean getLuckPassed() {
+        return luckPassed;
+    }
+
+    public void setLuckPassed(Boolean luckPassed) {
+        this.luckPassed = luckPassed;
     }
 }
