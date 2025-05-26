@@ -1,6 +1,7 @@
 package com.coursework.story.dto;
 
 import com.coursework.story.model.Choice;
+import com.coursework.story.model.Enemy;
 import com.coursework.story.model.Page;
 
 import java.util.List;
@@ -28,6 +29,8 @@ public class PageDTO {
 
     private boolean luckRequired;
 
+    private Enemy enemy;
+
 
     public PageDTO() {
     }
@@ -43,6 +46,7 @@ public class PageDTO {
         positionY = page.getPositionY();
         isEndPage = page.isEndPage();
         luckRequired = page.isLuckRequired();
+        enemy = page.getEnemy();
     }
 
     public PageDTO(Page page, boolean luckRequired) {
@@ -55,6 +59,7 @@ public class PageDTO {
         positionX = page.getPositionX();
         positionY = page.getPositionY();
         isEndPage = page.isEndPage();
+        enemy = page.getEnemy();
     }
 
     @Override
@@ -148,5 +153,13 @@ public class PageDTO {
 
     public void setLuckRequired(boolean luckRequired) {
         this.luckRequired = luckRequired;
+    }
+
+    public Enemy getEnemy() {
+        return enemy;
+    }
+
+    public void setEnemy(Enemy enemy) {
+        this.enemy = enemy;
     }
 }

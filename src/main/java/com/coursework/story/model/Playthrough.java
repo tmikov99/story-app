@@ -1,5 +1,6 @@
 package com.coursework.story.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -38,6 +39,11 @@ public class Playthrough {
 
     @Embedded
     private PlayerStats stats;
+
+    @OneToOne(mappedBy = "playthrough", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private Battle battle;
+    private boolean battlePending;
 
     public Long getId() {
         return id;
@@ -117,6 +123,22 @@ public class Playthrough {
 
     public void setStats(PlayerStats stats) {
         this.stats = stats;
+    }
+
+    public Battle getBattle() {
+        return battle;
+    }
+
+    public void setBattle(Battle battle) {
+        this.battle = battle;
+    }
+
+    public boolean isBattlePending() {
+        return battlePending;
+    }
+
+    public void setBattlePending(boolean battlePending) {
+        this.battlePending = battlePending;
     }
 
     public boolean isLuckRequired() {
