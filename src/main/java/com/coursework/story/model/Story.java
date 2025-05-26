@@ -191,7 +191,14 @@ public class Story {
     }
 
     public Integer getStartPageNumber() {
-        return startPageNumber;
+        if (startPageNumber != null) {
+            return startPageNumber;
+        }
+
+        return pages.stream()
+                .map(Page::getPageNumber)
+                .min(Integer::compareTo)
+                .orElse(null);
     }
 
     public void setStartPageNumber(Integer startPageNumber) {
