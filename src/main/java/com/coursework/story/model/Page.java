@@ -33,6 +33,8 @@ public class Page {
     @JsonManagedReference
     private List<Choice> choices = new ArrayList<>();
 
+    @Embedded
+    private Enemy enemy;
     private Integer deltaSkill;
     private Integer deltaStamina;
     private Integer deltaLuck;
@@ -104,6 +106,14 @@ public class Page {
     public boolean isLuckRequired() {
         return choices != null && choices.stream()
                 .anyMatch(Choice::getRequiresLuckCheck);
+    }
+
+    public Enemy getEnemy() {
+        return enemy;
+    }
+
+    public void setEnemy(Enemy enemy) {
+        this.enemy = enemy;
     }
 
     public Double getPositionX() {

@@ -1,5 +1,6 @@
 package com.coursework.story.dto;
 
+import com.coursework.story.model.Battle;
 import com.coursework.story.model.Page;
 import com.coursework.story.model.PlayerStats;
 import com.coursework.story.model.Playthrough;
@@ -22,6 +23,8 @@ public class PlaythroughDTO {
     private PlayerStats stats;
     private Boolean luckRequired;
     private Boolean luckPassed;
+    private Boolean battlePending;
+    private Battle battle;
 
     public PlaythroughDTO(Playthrough playthrough) {
         id = playthrough.getId();
@@ -34,6 +37,8 @@ public class PlaythroughDTO {
         stats = playthrough.getStats();
         luckRequired = playthrough.isLuckRequired();
         luckPassed = playthrough.isLuckPassed();
+        battlePending = playthrough.isBattlePending();
+        battle = playthrough.getBattle();
         story = new StoryDTO();
         story.setId(playthrough.getStory().getId());
         story.setTitle(playthrough.getStory().getTitle());
@@ -52,6 +57,8 @@ public class PlaythroughDTO {
         stats = playthrough.getStats();
         luckRequired = playthrough.isLuckRequired();
         luckPassed = playthrough.isLuckPassed();
+        battlePending = playthrough.isBattlePending();
+        battle = playthrough.getBattle();
         story = new StoryDTO();
         story.setId(playthrough.getStory().getId());
         story.setTitle(playthrough.getStory().getTitle());
@@ -162,5 +169,21 @@ public class PlaythroughDTO {
 
     public void setLuckPassed(Boolean luckPassed) {
         this.luckPassed = luckPassed;
+    }
+
+    public Boolean getBattlePending() {
+        return battlePending;
+    }
+
+    public void setBattlePending(Boolean battlePending) {
+        this.battlePending = battlePending;
+    }
+
+    public Battle getBattle() {
+        return battle;
+    }
+
+    public void setBattle(Battle battle) {
+        this.battle = battle;
     }
 }

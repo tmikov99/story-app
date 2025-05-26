@@ -4,6 +4,7 @@ import com.coursework.story.dto.PageDTO;
 import com.coursework.story.dto.PaginatedResponse;
 import com.coursework.story.dto.PlaythroughDTO;
 import com.coursework.story.dto.StatCheckResult;
+import com.coursework.story.model.Battle;
 import com.coursework.story.service.PlaythroughService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,6 +40,31 @@ public class PlaythroughController {
     @GetMapping("/{playthroughId}/testLuck")
     public ResponseEntity<StatCheckResult> testPlayerLuck(@PathVariable Long playthroughId) {
         return ResponseEntity.ok(playthroughService.testPlayerLuck(playthroughId));
+    }
+
+    @PostMapping("/{playthroughId}/battle/start")
+    public ResponseEntity<Battle> startBattle(@PathVariable Long playthroughId) {
+        return ResponseEntity.ok(playthroughService.startBattle(playthroughId));
+    }
+
+    @PostMapping("/{playthroughId}/battle/play")
+    public ResponseEntity<Battle> resolveBattleRound(@PathVariable Long playthroughId) {
+        return ResponseEntity.ok(playthroughService.resolveBattleRound(playthroughId));
+    }
+
+    @PostMapping("/{playthroughId}/battle/luck")
+    public ResponseEntity<Battle> useLuckInBattle(@PathVariable Long playthroughId) {
+        return ResponseEntity.ok(playthroughService.useLuckInBattle(playthroughId));
+    }
+
+    @PostMapping("/{playthroughId}/battle/continue")
+    public ResponseEntity<Battle> continueBattle(@PathVariable Long playthroughId) {
+        return ResponseEntity.ok(playthroughService.continueBattleWithoutLuck(playthroughId));
+    }
+
+    @GetMapping("/{playthroughId}/battle")
+    public ResponseEntity<Battle> getCurrentBattle(@PathVariable Long playthroughId) {
+        return ResponseEntity.ok(playthroughService.getCurrentBattle(playthroughId));
     }
 
     @GetMapping("/{playthroughId}")

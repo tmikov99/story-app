@@ -27,14 +27,17 @@ public class PlaythroughService {
     private final StoryRepository storyRepository;
     private final PageRepository pageRepository;
     private final ChoiceRepository choiceRepository;
+    private final BattleService battleService;
     private final AuthService authService;
 
     public PlaythroughService(PlaythroughRepository playthroughRepository, StoryRepository storyRepository,
-                              PageRepository pageRepository, ChoiceRepository choiceRepository, AuthService authService) {
+                              PageRepository pageRepository, ChoiceRepository choiceRepository,
+                              BattleService battleService, AuthService authService) {
         this.playthroughRepository = playthroughRepository;
         this.storyRepository = storyRepository;
         this.pageRepository = pageRepository;
         this.choiceRepository = choiceRepository;
+        this.battleService = battleService;
         this.authService = authService;
     }
 
@@ -105,6 +108,12 @@ public class PlaythroughService {
         Choice choice = choiceRepository.findByIdAndPage(choiceId, playthrough.getCurrentPage())
                 .orElseThrow(() -> new NotFoundException("Choice not present on page"));
 
+        //TODO: Add check if choice is from current page
+
+        if (playthrough.isBattlePending()) {
+            throw new BadRequestException("There is a battle that isn't completed yet");
+        }
+
         if (playthrough.isLuckRequired()) {
             throw new BadRequestException("Luck check is not completed, perform the luck check");
         }
@@ -130,6 +139,10 @@ public class PlaythroughService {
         playthrough.setLuckRequired(luckRequired);
         playthrough.setLuckPassed(false);
 
+        if (nextPage.getEnemy() != null) {
+            playthrough.setBattlePending(true);
+        }
+
         playthroughRepository.save(playthrough);
 
         return new PlaythroughDTO(playthrough, nextPage);
@@ -152,6 +165,88 @@ public class PlaythroughService {
         Playthrough savedPlaythrough = playthroughRepository.save(playthrough);
 
         return new StatCheckResult(diceRoll, checkPassed, savedPlaythrough);
+    }
+
+    @Transactional
+    public Battle startBattle(Long playthroughId) {
+        Playthrough playthrough = getPlaythroughOwnedByUser(playthroughId);
+        if (!playthrough.isBattlePending() || playthrough.getCurrentPage().getEnemy() == null) {
+            throw new BadRequestException("No battle is required on this page.");
+        }
+
+        if (playthrough.getBattle() != null && !playthrough.getBattle().isCompleted()) {
+            return playthrough.getBattle();
+        }
+
+        Battle battle = battleService.startBattle(
+                playthrough.getCurrentPage(),
+                playthrough.getStats(),
+                playthrough
+        );
+        playthrough.setBattle(battle);
+        playthroughRepository.save(playthrough);
+        return battle;
+    }
+
+    @Transactional
+    public Battle resolveBattleRound(Long playthroughId) {
+        Playthrough playthrough = getPlaythroughOwnedByUser(playthroughId);
+        Battle battle = playthrough.getBattle();
+        if (battle == null || battle.isCompleted()) {
+            throw new BadRequestException("No active battle.");
+        }
+
+        return battleService.resolveRound(battle);
+    }
+
+    @Transactional
+    public Battle useLuckInBattle(Long playthroughId) {
+        Playthrough playthrough = getPlaythroughOwnedByUser(playthroughId);
+        Battle battle = playthrough.getBattle();
+        if (battle == null || battle.isCompleted()) {
+            throw new BadRequestException("No active battle.");
+        }
+
+        Battle updatedBattle = battleService.applyLuck(battle);
+        if (battleService.isBattleOver(updatedBattle)) {
+            battleService.finalizeBattle(updatedBattle);
+            playthrough.setBattlePending(false);
+
+            if (!updatedBattle.isPlayerWon()) {
+                playthrough.setCompleted(true);
+            }
+            playthroughRepository.save(playthrough);
+        }
+
+        return updatedBattle;
+    }
+
+    @Transactional
+    public Battle continueBattleWithoutLuck(Long playthroughId) {
+        Playthrough playthrough = getPlaythroughOwnedByUser(playthroughId);
+        Battle battle = playthrough.getBattle();
+        if (battle == null || battle.isCompleted()) {
+            throw new BadRequestException("No active battle.");
+        }
+
+        Battle updatedBattle = battleService.finalizeWithoutLuck(battle);
+
+        if (battleService.isBattleOver(updatedBattle)) {
+            battleService.finalizeBattle(updatedBattle);
+            playthrough.setBattlePending(false);
+
+            if (!updatedBattle.isPlayerWon()) {
+                playthrough.setCompleted(true);
+            }
+            playthroughRepository.save(playthrough);
+        }
+
+        return updatedBattle;
+    }
+
+    public Battle getCurrentBattle(Long playthroughId) {
+        Playthrough playthrough = getPlaythroughOwnedByUser(playthroughId);
+        return playthrough.getBattle();
     }
 
     public PlaythroughDTO getPlaythroughById(Long playthroughId) {
