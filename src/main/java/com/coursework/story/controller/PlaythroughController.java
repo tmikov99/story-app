@@ -62,6 +62,11 @@ public class PlaythroughController {
         return ResponseEntity.ok(playthroughService.continueBattleWithoutLuck(playthroughId));
     }
 
+    @PostMapping("/{playthroughId}/battle/finish")
+    public ResponseEntity<PlaythroughDTO> finishBattle(@PathVariable Long playthroughId) {
+        return ResponseEntity.ok(playthroughService.concludeBattle(playthroughId));
+    }
+
     @GetMapping("/{playthroughId}/battle")
     public ResponseEntity<Battle> getCurrentBattle(@PathVariable Long playthroughId) {
         return ResponseEntity.ok(playthroughService.getCurrentBattle(playthroughId));

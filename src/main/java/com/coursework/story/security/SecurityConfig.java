@@ -79,6 +79,7 @@ public class SecurityConfig {
                         .requestMatchers(POST, "/api/playthrough/{playthroughId}/battle/play").authenticated()
                         .requestMatchers(POST, "/api/playthrough/{playthroughId}/battle/luck").authenticated()
                         .requestMatchers(POST, "/api/playthrough/{playthroughId}/battle/continue").authenticated()
+                        .requestMatchers(POST, "/api/playthrough/{playthroughId}/battle/finish").authenticated()
                         .requestMatchers(GET, "/api/playthrough/{playthroughId}/battle").authenticated()
 
                         .requestMatchers(PUT, "/api/page/{pageId}").authenticated()

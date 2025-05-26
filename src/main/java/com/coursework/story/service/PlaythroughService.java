@@ -210,15 +210,33 @@ public class PlaythroughService {
         Battle updatedBattle = battleService.applyLuck(battle);
         if (battleService.isBattleOver(updatedBattle)) {
             battleService.finalizeBattle(updatedBattle);
-            playthrough.setBattlePending(false);
-
-            if (!updatedBattle.isPlayerWon()) {
-                playthrough.setCompleted(true);
-            }
-            playthroughRepository.save(playthrough);
         }
 
         return updatedBattle;
+    }
+
+    @Transactional
+    public PlaythroughDTO concludeBattle(Long playthroughId) {
+        Playthrough playthrough = getPlaythroughOwnedByUser(playthroughId);
+        Battle battle = playthrough.getBattle();
+
+        if (battle == null || !battle.isCompleted()) {
+            throw new BadRequestException("No completed battle to finalize.");
+        }
+
+        playthrough.setBattlePending(false);
+
+        if (!battle.isPlayerWon()) {
+            playthrough.setCompleted(true);
+        }
+
+        PlayerStats playthroughStats = playthrough.getStats();
+        playthroughStats.setStamina(battle.getPlayerStamina());
+        playthroughStats.setSkill(battle.getPlayerSkill());
+        playthroughStats.setLuck(battle.getPlayerLuck());
+
+        Playthrough savedPlaythrough = playthroughRepository.save(playthrough);
+        return new PlaythroughDTO(savedPlaythrough, savedPlaythrough.getCurrentPage());
     }
 
     @Transactional
@@ -233,12 +251,6 @@ public class PlaythroughService {
 
         if (battleService.isBattleOver(updatedBattle)) {
             battleService.finalizeBattle(updatedBattle);
-            playthrough.setBattlePending(false);
-
-            if (!updatedBattle.isPlayerWon()) {
-                playthrough.setCompleted(true);
-            }
-            playthroughRepository.save(playthrough);
         }
 
         return updatedBattle;
