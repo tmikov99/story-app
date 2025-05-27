@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity(name = "pages")
 public class Page {
@@ -32,6 +34,18 @@ public class Page {
     @OneToMany(mappedBy = "page", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Choice> choices = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(name = "page_granted_items",
+            joinColumns = @JoinColumn(name = "page_id"),
+            inverseJoinColumns = @JoinColumn(name = "item_id"))
+    private Set<Item> itemsGranted = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(name = "page_removed_items",
+            joinColumns = @JoinColumn(name = "page_id"),
+            inverseJoinColumns = @JoinColumn(name = "item_id"))
+    private Set<Item> itemsRemoved = new HashSet<>();
 
     @Embedded
     private Enemy enemy;
@@ -106,6 +120,22 @@ public class Page {
     public boolean isLuckRequired() {
         return choices != null && choices.stream()
                 .anyMatch(Choice::getRequiresLuckCheck);
+    }
+
+    public Set<Item> getItemsGranted() {
+        return itemsGranted;
+    }
+
+    public void setItemsGranted(Set<Item> itemsGranted) {
+        this.itemsGranted = itemsGranted;
+    }
+
+    public Set<Item> getItemsRemoved() {
+        return itemsRemoved;
+    }
+
+    public void setItemsRemoved(Set<Item> itemsRemoved) {
+        this.itemsRemoved = itemsRemoved;
     }
 
     public Enemy getEnemy() {

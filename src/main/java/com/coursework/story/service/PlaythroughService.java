@@ -141,6 +141,13 @@ public class PlaythroughService {
             throw new BadRequestException("Required luck check failed, select a different choice");
         }
 
+        for (Item required : choice.getRequiredItems()) {
+            if (!playthrough.getInventory().contains(required)) {
+                throw new BadRequestException("Missing required item: " + required.getName());
+            }
+        }
+
+
         Page nextPage = pageRepository.findByStoryIdAndPageNumber(playthrough.getStory().getId(), choice.getTargetPage())
                 .orElseThrow(() -> new NotFoundException("Page not found in story"));
 
@@ -162,24 +169,60 @@ public class PlaythroughService {
             playthrough.setBattlePending(true);
         }
 
-        StatModifiers modifiers = nextPage.getStatModifiers();
-        if (modifiers != null) {
-            PlayerStats stats = playthrough.getStats();
+        PlayerStats stats = playthrough.getStats();
 
-            if (modifiers.getSkill() != null) {
-                stats.setSkill(stats.getSkill() + modifiers.getSkill());
+        StatModifiers pageModifiers = nextPage.getStatModifiers();
+        if (pageModifiers != null) {
+            applyModifiers(stats, pageModifiers);
+        }
+
+        for (Item item : nextPage.getItemsGranted()) {
+            if (!playthrough.getInventory().contains(item)) {
+                playthrough.getInventory().add(item);
+                StatModifiers itemMods = item.getStatModifiers();
+                if (itemMods != null) {
+                    applyModifiers(stats, itemMods);
+                }
             }
-            if (modifiers.getStamina() != null) {
-                stats.setStamina(stats.getStamina() + modifiers.getStamina());
-            }
-            if (modifiers.getLuck() != null) {
-                stats.setLuck(stats.getLuck() + modifiers.getLuck());
+        }
+
+        for (Item item : nextPage.getItemsRemoved()) {
+            if (playthrough.getInventory().contains(item)) {
+                playthrough.getInventory().remove(item);
+                StatModifiers itemMods = item.getStatModifiers();
+                if (itemMods != null) {
+                    revertModifiers(stats, itemMods);
+                }
             }
         }
 
         playthroughRepository.save(playthrough);
 
         return new PlaythroughDTO(playthrough, nextPage);
+    }
+
+    private void applyModifiers(PlayerStats stats, StatModifiers mods) {
+        if (mods.getSkill() != null) {
+            stats.setSkill(stats.getSkill() + mods.getSkill());
+        }
+        if (mods.getStamina() != null) {
+            stats.setStamina(stats.getStamina() + mods.getStamina());
+        }
+        if (mods.getLuck() != null) {
+            stats.setLuck(stats.getLuck() + mods.getLuck());
+        }
+    }
+
+    private void revertModifiers(PlayerStats stats, StatModifiers mods) {
+        if (mods.getSkill() != null) {
+            stats.setSkill(stats.getSkill() - mods.getSkill());
+        }
+        if (mods.getStamina() != null) {
+            stats.setStamina(stats.getStamina() - mods.getStamina());
+        }
+        if (mods.getLuck() != null) {
+            stats.setLuck(stats.getLuck() - mods.getLuck());
+        }
     }
 
     public StatCheckResult testPlayerLuck(Long playthroughId) {

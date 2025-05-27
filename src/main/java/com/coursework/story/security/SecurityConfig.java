@@ -65,6 +65,10 @@ public class SecurityConfig {
                         .requestMatchers(DELETE, "/api/story/{storyId}").authenticated()
                         .requestMatchers(POST, "/api/story/like/{storyId}").authenticated()
                         .requestMatchers(POST, "/api/story/favorite/{storyId}").authenticated()
+                        .requestMatchers(GET, "/api/story/{storyId}/items").authenticated()
+                        .requestMatchers(POST, "/api/story/{storyId}/items").authenticated()
+                        .requestMatchers(PUT, "api/story/{storyId}/items/{itemId}").authenticated()
+                        .requestMatchers(DELETE, "api/story/{storyId}/items/{itemId}").authenticated()
 
                         .requestMatchers(POST, "/api/playthrough/start/{storyId}").authenticated()
                         .requestMatchers(PATCH, "/api/playthrough/{playthroughId}/choose/{nextPage}").authenticated()

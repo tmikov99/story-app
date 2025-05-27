@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -147,5 +148,30 @@ public class StoryController {
     @PostMapping("/favorite/{storyId}")
     public ResponseEntity<Boolean> favoriteStory(@PathVariable Long storyId) {
         return ResponseEntity.ok(storyService.toggleFavoriteStory(storyId));
+    }
+
+    @GetMapping("/{storyId}/items")
+    public ResponseEntity<List<ItemDTO>> getItemsForStory(@PathVariable Long storyId) {
+        return ResponseEntity.ok(storyService.getItemsForStory(storyId));
+    }
+
+    @PostMapping("/{storyId}/items")
+    public ResponseEntity<ItemDTO> createItem(@PathVariable Long storyId, @RequestBody ItemDTO item) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(storyService.createItem(storyId, item));
+    }
+
+    @PutMapping("/{storyId}/items/{itemId}")
+    public ResponseEntity<ItemDTO> updateItem(
+            @PathVariable Long storyId,
+            @PathVariable Long itemId,
+            @RequestBody ItemDTO item
+    ) {
+        return ResponseEntity.ok(storyService.updateItem(storyId, itemId, item));
+    }
+
+    @DeleteMapping("/{storyId}/items/{itemId}")
+    public ResponseEntity<Void> deleteItem(@PathVariable Long storyId, @PathVariable Long itemId) {
+        storyService.deleteItem(storyId, itemId);
+        return ResponseEntity.noContent().build();
     }
 }

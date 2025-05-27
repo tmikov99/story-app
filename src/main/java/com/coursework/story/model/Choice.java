@@ -3,6 +3,9 @@ package com.coursework.story.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity(name = "choices")
 public class Choice {
 
@@ -17,6 +20,14 @@ public class Choice {
     @JoinColumn(name = "page_id")
     @JsonBackReference
     private Page page;
+
+    @ManyToMany
+    @JoinTable(
+            name = "choice_required_items",
+            joinColumns = @JoinColumn(name = "choice_id"),
+            inverseJoinColumns = @JoinColumn(name = "item_id")
+    )
+    private Set<Item> requiredItems = new HashSet<>();
 
     private boolean requiresLuckCheck;
 
@@ -63,6 +74,14 @@ public class Choice {
 
     public void setPage(Page page) {
         this.page = page;
+    }
+
+    public Set<Item> getRequiredItems() {
+        return requiredItems;
+    }
+
+    public void setRequiredItems(Set<Item> requiredItems) {
+        this.requiredItems = requiredItems;
     }
 
     public Boolean getRequiresLuckCheck() {

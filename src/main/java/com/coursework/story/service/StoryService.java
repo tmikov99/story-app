@@ -1,5 +1,6 @@
 package com.coursework.story.service;
 
+import com.coursework.story.dto.ItemDTO;
 import com.coursework.story.dto.LikeResponse;
 import com.coursework.story.dto.PaginatedResponse;
 import com.coursework.story.dto.StoryDTO;
@@ -8,6 +9,7 @@ import com.coursework.story.exception.NotFoundException;
 import com.coursework.story.exception.StoryValidationException;
 import com.coursework.story.exception.UnauthorizedException;
 import com.coursework.story.model.*;
+import com.coursework.story.repository.ItemRepository;
 import com.coursework.story.repository.PlaythroughRepository;
 import com.coursework.story.repository.StoryRepository;
 import com.coursework.story.repository.UserRepository;
@@ -30,6 +32,7 @@ public class StoryService {
     private final StoryRepository storyRepository;
     private final UserRepository userRepository;
     private final PlaythroughRepository playthroughRepository;
+    private final ItemRepository itemRepository;
     private final NotificationService notificationService;
     private final FirebaseStorageService firebaseStorageService;
     private final DraftService draftService;
@@ -37,11 +40,12 @@ public class StoryService {
 
     public StoryService(StoryRepository storyRepository, UserRepository userRepository,
                         PlaythroughRepository playthroughRepository, NotificationService notificationService,
-                        FirebaseStorageService firebaseStorageService,
+                        ItemRepository itemRepository, FirebaseStorageService firebaseStorageService,
                         DraftService draftService, AuthService authService) {
         this.storyRepository = storyRepository;
         this.userRepository = userRepository;
         this.playthroughRepository = playthroughRepository;
+        this.itemRepository = itemRepository;
         this.notificationService = notificationService;
         this.firebaseStorageService = firebaseStorageService;
         this.draftService = draftService;
@@ -167,6 +171,119 @@ public class StoryService {
             dto.setFavorite(favoriteIds.contains(story.getId()));
             return dto;
         });
+    }
+
+    @Transactional
+    public ItemDTO createItem(Long storyId, ItemDTO itemDTO) {
+        User user = authService.getAuthenticatedUserOrThrow();
+
+        Story story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new NotFoundException("Story not found"));
+
+        if (!story.getUser().equals(user)) {
+            throw new UnauthorizedException("Unauthorized to add items to this story");
+        }
+
+        if (story.getStatus() == StoryStatus.PUBLISHED) {
+            throw new BadRequestException("Cannot edit a published story. Please create a draft copy first.");
+        }
+
+        Item item = getNewItem(itemDTO, story);
+
+        return new ItemDTO(itemRepository.save(item));
+    }
+
+    @Transactional
+    public ItemDTO updateItem(Long storyId, Long itemId, ItemDTO itemDTO) {
+        User user = authService.getAuthenticatedUserOrThrow();
+
+        Story story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new NotFoundException("Story not found"));
+
+        if (!story.getUser().equals(user)) {
+            throw new UnauthorizedException("Unauthorized to edit items in this story");
+        }
+
+        if (story.getStatus() == StoryStatus.PUBLISHED) {
+            throw new BadRequestException("Cannot edit a published story. Please create a draft copy first.");
+        }
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Item not found"));
+
+        if (!item.getStory().getId().equals(story.getId())) {
+            throw new UnauthorizedException("Item does not belong to the specified story");
+        }
+
+        return new ItemDTO(itemRepository.save(getItem(itemDTO, item)));
+    }
+
+    private static Item getNewItem(ItemDTO itemDTO, Story story) {
+        Item item = getItem(itemDTO, new Item());
+        item.setStory(story);
+        return item;
+    }
+
+    private static Item getItem(ItemDTO itemDTO, Item item) {
+        if (itemDTO.getName() == null || itemDTO.getName().trim().isEmpty()) {
+            throw new BadRequestException("Item name is required");
+        }
+
+        if (itemDTO.getDescription() == null || itemDTO.getDescription().trim().isEmpty()) {
+            throw new BadRequestException("Item description is required");
+        }
+
+        String defaultIcon = "❓";
+        String icon = (itemDTO.getIcon() == null || itemDTO.getIcon().trim().isEmpty())
+                ? defaultIcon
+                : itemDTO.getIcon().trim();
+
+        item.setName(itemDTO.getName());
+        item.setDescription(itemDTO.getDescription());
+        item.setIcon(icon);
+        item.setStatModifiers(itemDTO.getStatModifiers());
+        return item;
+    }
+
+    @Transactional
+    public void deleteItem(Long storyId, Long itemId) {
+        User user = authService.getAuthenticatedUserOrThrow();
+
+        Story story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new NotFoundException("Story not found"));
+
+        if (!story.getUser().equals(user)) {
+            throw new UnauthorizedException("Unauthorized to delete items for this story");
+        }
+
+        if (story.getStatus() == StoryStatus.PUBLISHED) {
+            throw new BadRequestException("Cannot edit a published story. Please create a draft copy first.");
+        }
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Item not found"));
+
+        if (!item.getStory().getId().equals(story.getId())) {
+            throw new UnauthorizedException("Item does not belong to the specified story");
+        }
+
+        itemRepository.removeFromGrantedPages(itemId);
+        itemRepository.removeFromRemovedPages(itemId);
+
+        itemRepository.delete(item);
+    }
+
+    public List<ItemDTO> getItemsForStory(Long storyId) {
+        User user = authService.getAuthenticatedUserOrThrow();
+
+        Story story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new NotFoundException("Story not found"));
+
+        if (!story.getUser().equals(user)) {
+            throw new UnauthorizedException("Unauthorized to view items configuration for this story");
+        }
+
+        return itemRepository.findByStoryId(story.getId()).stream().map(ItemDTO::new).collect(Collectors.toList());
     }
 
     @Transactional

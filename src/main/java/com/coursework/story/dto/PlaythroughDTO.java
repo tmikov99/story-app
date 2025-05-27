@@ -7,6 +7,8 @@ import com.coursework.story.model.Playthrough;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PlaythroughDTO {
 
@@ -23,6 +25,7 @@ public class PlaythroughDTO {
     private PlayerStats stats;
     private Boolean luckRequired;
     private Boolean luckPassed;
+    private Set<ItemDTO> inventory;
     private Boolean battlePending;
     private Battle battle;
 
@@ -37,6 +40,7 @@ public class PlaythroughDTO {
         stats = playthrough.getStats();
         luckRequired = playthrough.isLuckRequired();
         luckPassed = playthrough.isLuckPassed();
+        inventory = playthrough.getInventory().stream().map(ItemDTO::new).collect(Collectors.toSet());
         battlePending = playthrough.isBattlePending();
         battle = playthrough.getBattle();
         story = new StoryDTO();
@@ -57,6 +61,7 @@ public class PlaythroughDTO {
         stats = playthrough.getStats();
         luckRequired = playthrough.isLuckRequired();
         luckPassed = playthrough.isLuckPassed();
+        inventory = playthrough.getInventory().stream().map(ItemDTO::new).collect(Collectors.toSet());
         battlePending = playthrough.isBattlePending();
         battle = playthrough.getBattle();
         story = new StoryDTO();
@@ -169,6 +174,14 @@ public class PlaythroughDTO {
 
     public void setLuckPassed(Boolean luckPassed) {
         this.luckPassed = luckPassed;
+    }
+
+    public Set<ItemDTO> getInventory() {
+        return inventory;
+    }
+
+    public void setInventory(Set<ItemDTO> inventory) {
+        this.inventory = inventory;
     }
 
     public Boolean getBattlePending() {
