@@ -88,6 +88,8 @@ public class PageService {
         page.setPageNumber(newPage.getPageNumber());
         page.setParagraphs(newPage.getParagraphs());
         page.setChoices(newPage.getChoices());
+        page.setEnemy(newPage.getEnemy());
+        page.setStatModifiers(newPage.getStatModifiers());
         page.setPositionX(newPage.getPositionX());
         page.setPositionY(newPage.getPositionY());
         return new PageDTO(pageRepository.save(page));
@@ -117,6 +119,8 @@ public class PageService {
         page.setPageNumber(story.getFirstAvailablePageNumber());
         page.setParagraphs(newPage.getParagraphs());
         page.setChoices(newPage.getChoices());
+        page.setEnemy(newPage.getEnemy());
+        page.setStatModifiers(newPage.getStatModifiers());
         page.setPositionX(newPage.getPositionX());
         page.setPositionY(newPage.getPositionY());
         page.setStory(story);

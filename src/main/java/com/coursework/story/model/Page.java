@@ -35,9 +35,9 @@ public class Page {
 
     @Embedded
     private Enemy enemy;
-    private Integer deltaSkill;
-    private Integer deltaStamina;
-    private Integer deltaLuck;
+
+    @Embedded
+    private StatModifiers statModifiers;
 
     @Column(name = "position_x")
     private Double positionX;
@@ -132,27 +132,11 @@ public class Page {
         this.positionY = positionY;
     }
 
-    public Integer getDeltaSkill() {
-        return deltaSkill;
+    public StatModifiers getStatModifiers() {
+        return statModifiers;
     }
 
-    public void setDeltaSkill(Integer deltaSkill) {
-        this.deltaSkill = deltaSkill;
-    }
-
-    public Integer getDeltaStamina() {
-        return deltaStamina;
-    }
-
-    public void setDeltaStamina(Integer deltaStamina) {
-        this.deltaStamina = deltaStamina;
-    }
-
-    public Integer getDeltaLuck() {
-        return deltaLuck;
-    }
-
-    public void setDeltaLuck(Integer deltaLuck) {
-        this.deltaLuck = deltaLuck;
+    public void setStatModifiers(StatModifiers statModifiers) {
+        this.statModifiers = statModifiers;
     }
 }

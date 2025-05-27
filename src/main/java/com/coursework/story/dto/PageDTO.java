@@ -3,6 +3,7 @@ package com.coursework.story.dto;
 import com.coursework.story.model.Choice;
 import com.coursework.story.model.Enemy;
 import com.coursework.story.model.Page;
+import com.coursework.story.model.StatModifiers;
 
 import java.util.List;
 import java.util.Objects;
@@ -30,6 +31,7 @@ public class PageDTO {
     private boolean luckRequired;
 
     private Enemy enemy;
+    private StatModifiers statModifiers;
 
 
     public PageDTO() {
@@ -47,6 +49,7 @@ public class PageDTO {
         isEndPage = page.isEndPage();
         luckRequired = page.isLuckRequired();
         enemy = page.getEnemy();
+        statModifiers = page.getStatModifiers();
     }
 
     public PageDTO(Page page, boolean luckRequired) {
@@ -60,6 +63,7 @@ public class PageDTO {
         positionY = page.getPositionY();
         isEndPage = page.isEndPage();
         enemy = page.getEnemy();
+        statModifiers = page.getStatModifiers();
     }
 
     @Override
@@ -161,5 +165,13 @@ public class PageDTO {
 
     public void setEnemy(Enemy enemy) {
         this.enemy = enemy;
+    }
+
+    public StatModifiers getStatModifiers() {
+        return statModifiers;
+    }
+
+    public void setStatModifiers(StatModifiers statModifiers) {
+        this.statModifiers = statModifiers;
     }
 }
