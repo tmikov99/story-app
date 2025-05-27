@@ -19,9 +19,6 @@ public class Choice {
     private Page page;
 
     private boolean requiresLuckCheck;
-    private Integer deltaSkill;
-    private Integer deltaStamina;
-    private Integer deltaLuck;
 
     public Choice() {}
 
@@ -34,9 +31,6 @@ public class Choice {
         this.text = choice.getText();
         this.targetPage = choice.getTargetPage();
         this.requiresLuckCheck = choice.getRequiresLuckCheck();
-        this.deltaSkill = choice.getDeltaSkill();
-        this.deltaStamina = choice.getDeltaStamina();
-        this.deltaLuck = choice.getDeltaLuck();
     }
 
     public String getText() {
@@ -77,29 +71,5 @@ public class Choice {
 
     public void setRequiresLuckCheck(boolean requiresLuckCheck) {
         this.requiresLuckCheck = requiresLuckCheck;
-    }
-
-    public Integer getDeltaSkill() {
-        return deltaSkill;
-    }
-
-    public void setDeltaSkill(Integer deltaSkill) {
-        this.deltaSkill = deltaSkill;
-    }
-
-    public Integer getDeltaStamina() {
-        return deltaStamina;
-    }
-
-    public void setDeltaStamina(Integer deltaStamina) {
-        this.deltaStamina = deltaStamina;
-    }
-
-    public Integer getDeltaLuck() {
-        return deltaLuck;
-    }
-
-    public void setDeltaLuck(Integer deltaLuck) {
-        this.deltaLuck = deltaLuck;
     }
 }

@@ -73,6 +73,25 @@ public class PlaythroughService {
         playthrough.setLuckRequired(luckRequired);
         playthrough.setLuckPassed(false);
 
+        if (startPage.getEnemy() != null) {
+            playthrough.setBattlePending(true);
+        }
+
+        StatModifiers modifiers = startPage.getStatModifiers();
+        if (modifiers != null) {
+            PlayerStats stats = playthrough.getStats();
+
+            if (modifiers.getSkill() != null) {
+                stats.setSkill(stats.getSkill() + modifiers.getSkill());
+            }
+            if (modifiers.getStamina() != null) {
+                stats.setStamina(stats.getStamina() + modifiers.getStamina());
+            }
+            if (modifiers.getLuck() != null) {
+                stats.setLuck(stats.getLuck() + modifiers.getLuck());
+            }
+        }
+
         Playthrough savedPlaythrough = playthroughRepository.save(playthrough);
 
         if (isFirstPlaythrough) {
@@ -141,6 +160,21 @@ public class PlaythroughService {
 
         if (nextPage.getEnemy() != null) {
             playthrough.setBattlePending(true);
+        }
+
+        StatModifiers modifiers = nextPage.getStatModifiers();
+        if (modifiers != null) {
+            PlayerStats stats = playthrough.getStats();
+
+            if (modifiers.getSkill() != null) {
+                stats.setSkill(stats.getSkill() + modifiers.getSkill());
+            }
+            if (modifiers.getStamina() != null) {
+                stats.setStamina(stats.getStamina() + modifiers.getStamina());
+            }
+            if (modifiers.getLuck() != null) {
+                stats.setLuck(stats.getLuck() + modifiers.getLuck());
+            }
         }
 
         playthroughRepository.save(playthrough);
@@ -234,6 +268,8 @@ public class PlaythroughService {
         playthroughStats.setStamina(battle.getPlayerStamina());
         playthroughStats.setSkill(battle.getPlayerSkill());
         playthroughStats.setLuck(battle.getPlayerLuck());
+
+        playthrough.setBattle(null);
 
         Playthrough savedPlaythrough = playthroughRepository.save(playthrough);
         return new PlaythroughDTO(savedPlaythrough, savedPlaythrough.getCurrentPage());

@@ -29,6 +29,7 @@ public class BattleService {
         battle.setPlayerLuck(stats.getLuck());
 
         battle.setRoundFinalized(true);
+        battle.setBattleLog("You face the enemy in combat.");
         battle.setPlaythrough(playthrough);
 
         return battleRepository.save(battle);
@@ -103,7 +104,7 @@ public class BattleService {
     }
 
     public Battle finalizeWithoutLuck(Battle battle) {
-        return finalizeRound(battle, battle.getBattleLog());
+        return finalizeRound(battle, "You face the enemy in combat.");
     }
 
     public Battle finalizeRound(Battle battle, String currentLog) {
@@ -129,6 +130,7 @@ public class BattleService {
     public void finalizeBattle(Battle battle) {
         battle.setCompleted(true);
         battle.setPlayerWon(battle.getEnemyStamina() <= 0);
+        battle.setBattleLog(battle.getBattleLog() + " Battle Ended.");
         battleRepository.save(battle);
     }
 
