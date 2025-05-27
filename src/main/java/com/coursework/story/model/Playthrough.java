@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 public class Playthrough {
@@ -39,6 +41,14 @@ public class Playthrough {
 
     @Embedded
     private PlayerStats stats;
+
+    @ManyToMany
+    @JoinTable(
+            name = "playthrough_items",
+            joinColumns = @JoinColumn(name = "playthrough_id"),
+            inverseJoinColumns = @JoinColumn(name = "item_id")
+    )
+    private Set<Item> inventory = new HashSet<>();
 
     @OneToOne(mappedBy = "playthrough", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
@@ -123,6 +133,14 @@ public class Playthrough {
 
     public void setStats(PlayerStats stats) {
         this.stats = stats;
+    }
+
+    public Set<Item> getInventory() {
+        return inventory;
+    }
+
+    public void setInventory(Set<Item> inventory) {
+        this.inventory = inventory;
     }
 
     public Battle getBattle() {

@@ -36,6 +36,9 @@ public class Story {
     @Column(name = "tag")
     private Set<String> tags = new HashSet<>();
 
+    @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Item> items = new ArrayList<>();
+
     @Column(length = 1000)
     private String description;
 
@@ -172,6 +175,14 @@ public class Story {
 
     public void setTags(Set<String> tags) {
         this.tags = tags;
+    }
+
+    public List<Item> getItems() {
+        return items;
+    }
+
+    public void setItems(List<Item> items) {
+        this.items = items;
     }
 
     public String getDescription() {

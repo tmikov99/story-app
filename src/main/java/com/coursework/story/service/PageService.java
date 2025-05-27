@@ -4,10 +4,8 @@ import com.coursework.story.dto.PageDTO;
 import com.coursework.story.exception.BadRequestException;
 import com.coursework.story.exception.NotFoundException;
 import com.coursework.story.exception.UnauthorizedException;
-import com.coursework.story.model.Page;
-import com.coursework.story.model.Story;
-import com.coursework.story.model.StoryStatus;
-import com.coursework.story.model.User;
+import com.coursework.story.model.*;
+import com.coursework.story.repository.ItemRepository;
 import com.coursework.story.repository.PageRepository;
 import com.coursework.story.repository.PlaythroughRepository;
 import com.coursework.story.repository.StoryRepository;
@@ -16,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class PageService {
@@ -24,13 +24,16 @@ public class PageService {
     private final AuthService authService;
     private final StoryRepository storyRepository;
     private final PlaythroughRepository playthroughRepository;
+    private final ItemRepository itemRepository;
 
     public PageService(PageRepository pageRepository, AuthService authService,
-                       StoryRepository storyRepository, PlaythroughRepository playthroughRepository) {
+                       StoryRepository storyRepository, PlaythroughRepository playthroughRepository,
+                       ItemRepository itemRepository) {
         this.pageRepository = pageRepository;
         this.authService = authService;
         this.storyRepository = storyRepository;
         this.playthroughRepository = playthroughRepository;
+        this.itemRepository = itemRepository;
     }
 
     public PageDTO getPageById(Long pageId) {
@@ -84,14 +87,7 @@ public class PageService {
             throw new BadRequestException("Pages can only be updated in drafts");
         }
 
-        page.setTitle(newPage.getTitle());
-        page.setPageNumber(newPage.getPageNumber());
-        page.setParagraphs(newPage.getParagraphs());
-        page.setChoices(newPage.getChoices());
-        page.setEnemy(newPage.getEnemy());
-        page.setStatModifiers(newPage.getStatModifiers());
-        page.setPositionX(newPage.getPositionX());
-        page.setPositionY(newPage.getPositionY());
+        applyPageProperties(page, newPage);
         return new PageDTO(pageRepository.save(page));
     }
 
@@ -115,15 +111,10 @@ public class PageService {
         }
 
         Page page = new Page();
-        page.setTitle(newPage.getTitle());
-        page.setPageNumber(story.getFirstAvailablePageNumber());
-        page.setParagraphs(newPage.getParagraphs());
-        page.setChoices(newPage.getChoices());
-        page.setEnemy(newPage.getEnemy());
-        page.setStatModifiers(newPage.getStatModifiers());
-        page.setPositionX(newPage.getPositionX());
-        page.setPositionY(newPage.getPositionY());
+        applyPageProperties(page, newPage);
+
         page.setStory(story);
+        page.setPageNumber(story.getFirstAvailablePageNumber());
 
         Page savedPage = pageRepository.save(page);
         return new PageDTO(savedPage);
@@ -174,5 +165,25 @@ public class PageService {
                 throw new UnauthorizedException("Unauthorized access to draft story");
             }
         }
+    }
+
+    private void applyPageProperties(Page page, PageDTO newPage) {
+        Set<Item> grantedItems = newPage.getItemsGranted().stream()
+                .map(dto -> itemRepository.findById(dto.getId()).orElseThrow(() -> new NotFoundException("Item not found")))
+                .collect(Collectors.toSet());
+
+        Set<Item> removedItems = newPage.getItemsRemoved().stream()
+                .map(dto -> itemRepository.findById(dto.getId()).orElseThrow(() -> new NotFoundException("Item not found")))
+                .collect(Collectors.toSet());
+
+        page.setTitle(newPage.getTitle());
+        page.setParagraphs(newPage.getParagraphs());
+        page.setChoices(newPage.getChoices());
+        page.setItemsGranted(grantedItems);
+        page.setItemsRemoved(removedItems);
+        page.setEnemy(newPage.getEnemy());
+        page.setStatModifiers(newPage.getStatModifiers());
+        page.setPositionX(newPage.getPositionX());
+        page.setPositionY(newPage.getPositionY());
     }
 }

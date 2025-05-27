@@ -18,9 +18,20 @@ public class EmailService {
     }
 
     public void sendVerificationEmail(String to, String token) {
-        String subject = "Verify your email";
+        String subject = "Verify Your Email Address";
         String verificationLink = domainUrl + "/api/auth/verify?token=" + token;
-        String body = "Click to verify your email: " + verificationLink;
+        String body = """
+            Hi there,
+
+            Thank you for signing up! Please verify your email address by clicking the link below:
+
+            %s
+
+            If you did not request this, you can safely ignore this email.
+
+            Best regards,
+            The ForkLore Team
+            """.formatted(verificationLink);
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
@@ -31,7 +42,18 @@ public class EmailService {
 
     public void sendPasswordResetEmail(String to, String token) {
         String link = frontendUrl + "/reset-password?token=" + token;
-        String body = "Click to reset your password: " + link;
+        String body = """
+            Hi there,
+
+            We received a request to reset your password. You can reset it by clicking the link below:
+
+            %s
+
+            If you did not request this, you can safely ignore this email.
+
+            Stay safe,
+            The ForkLore Team
+            """.formatted(link);
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);

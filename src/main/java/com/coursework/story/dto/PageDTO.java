@@ -7,6 +7,8 @@ import com.coursework.story.model.StatModifiers;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PageDTO {
 
@@ -29,7 +31,8 @@ public class PageDTO {
     private boolean isEndPage;
 
     private boolean luckRequired;
-
+    private Set<ItemDTO> itemsGranted;
+    private Set<ItemDTO> itemsRemoved;
     private Enemy enemy;
     private StatModifiers statModifiers;
 
@@ -48,6 +51,8 @@ public class PageDTO {
         positionY = page.getPositionY();
         isEndPage = page.isEndPage();
         luckRequired = page.isLuckRequired();
+        itemsGranted = page.getItemsGranted().stream().map(ItemDTO::new).collect(Collectors.toSet());
+        itemsRemoved = page.getItemsRemoved().stream().map(ItemDTO::new).collect(Collectors.toSet());
         enemy = page.getEnemy();
         statModifiers = page.getStatModifiers();
     }
@@ -62,6 +67,8 @@ public class PageDTO {
         positionX = page.getPositionX();
         positionY = page.getPositionY();
         isEndPage = page.isEndPage();
+        itemsGranted = page.getItemsGranted().stream().map(ItemDTO::new).collect(Collectors.toSet());
+        itemsRemoved = page.getItemsRemoved().stream().map(ItemDTO::new).collect(Collectors.toSet());
         enemy = page.getEnemy();
         statModifiers = page.getStatModifiers();
     }
@@ -157,6 +164,22 @@ public class PageDTO {
 
     public void setLuckRequired(boolean luckRequired) {
         this.luckRequired = luckRequired;
+    }
+
+    public Set<ItemDTO> getItemsGranted() {
+        return itemsGranted;
+    }
+
+    public void setItemsGranted(Set<ItemDTO> itemsGranted) {
+        this.itemsGranted = itemsGranted;
+    }
+
+    public Set<ItemDTO> getItemsRemoved() {
+        return itemsRemoved;
+    }
+
+    public void setItemsRemoved(Set<ItemDTO> itemsRemoved) {
+        this.itemsRemoved = itemsRemoved;
     }
 
     public Enemy getEnemy() {
